@@ -1,6 +1,6 @@
 NAME = psbb
 OUTPUT = psbb.o
-INPUT_FILES = main.cpp
+INPUT_FILES = main.cpp nethandler.cpp
 STD = c++11
 
 all:

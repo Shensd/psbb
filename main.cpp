@@ -18,56 +18,21 @@
 #include <errno.h>
 
 // local
-#include "definitions.h"
+#include "headers.hpp"
+#include "serverparams.hpp"
+#include "definitions.hpp"
+#include "stringfunctions.hpp"
+#include "filefunctions.hpp"
+#include "arguments.hpp"
 
-// TODO
-// - add file support
-//    - strip any dangerous characters
-//       - possibly make a version that doesn't do this just for funsies
-//    - add access file that works similar to gitignore
-// - output log to log file instead of console
-// - add command line arg parsing 
+#define VERSION (std::string)"0.0.1"
 
-#define VERSION "0.0.1"
-
-struct SERVER_PARAMS {
-    int port;
-    std::string home_dir;
-    std::string index;
-} server;
+struct SERVER_PARAMS server;
 
 int error(std::string msg) {
     std::cout << msg << std::endl;
-        std::cout << errno << std::endl;
+    std::cout << errno << std::endl;
     return -1;
-}
-
-void process_args(int argc, char* argv[]) {
-    server.port = 8080;
-    server.home_dir = "./www";
-    server.index = "/index.html";
-}
-
-std::vector<std::string> split(std::string str, char delim) {
-    std::vector<std::string> lines;
-    std::istringstream iss(str);
-    std::string line;
-    while(std::getline(iss, line, delim)) lines.push_back(line);
-    return lines;
-}
-
-std::string replace(std::string str, std::string from, std::string to) {
-    std::string replaced = str;
-
-    int position = str.find(from);
-    int last_position = 0;
-    while(position != str.npos) {
-        replaced = replaced.replace(position, from.length(), to);
-        last_position = position;
-        position = str.find(from);
-    }
-
-    return replaced;
 }
 
 std::map<std::string, int> request_dictionary = {
@@ -89,6 +54,9 @@ std::pair<std::string, int> get_request_type(std::string line) {
 
 std::string get_file_path(std::string line, struct SERVER_PARAMS* server, bool raw=false) {
     std::string path = split(line, ' ')[1];
+
+    if(raw) return path;
+
     std::string bad_paths[] = {
         ".."
     };
@@ -104,7 +72,22 @@ std::string get_file_path(std::string line, struct SERVER_PARAMS* server, bool r
     return path;
 }
 
-void process_request(int sock, struct sockaddr_in* addr) {
+std::string build_response(struct HEADERS* headers) {
+    std::string response = "";
+
+    response += headers->response_code + "\r\n";
+    response += "Content-Length: " + std::to_string(headers->content_length) + "\r\n";
+    response += "Connection: " + headers->connection + "\r\n";
+    response += "Content-type: " + headers->content_type + "\r\n";
+    response += "Server: " + headers->server + "\r\n";
+    response += "\r\n";
+    response += headers->body;
+    response += "\r\n\r\n";
+
+    return response;
+}
+
+std::vector<std::string> get_request_content_lines(int sock) {
     char buffer[1024] = {0};
     int valread = read(
         sock,   // connection sock
@@ -114,27 +97,53 @@ void process_request(int sock, struct sockaddr_in* addr) {
 
     std::vector<std::string> lines = split((std::string)buffer, '\n');
 
-    std::string ip = inet_ntoa(addr->sin_addr);
+    return lines;
+}
+
+void process_request(int sock, struct sockaddr_in* addr) {
+
+    std::vector<std::string> lines = get_request_content_lines(sock);
+
     std::pair<std::string, int> type = get_request_type(lines.at(0));
+
+    std::string path_raw = get_file_path(lines.at(0), &server, true);
     std::string path = get_file_path(lines.at(0), &server);
+    std::string ip = inet_ntoa(addr->sin_addr);
+
+    bool exists = get_file_exists(path);
 
     std::cout << "REQUEST FROM " << ip << std::endl;
     std::cout << "TYPE         " << type.first << " (" << type.second << ")" << std::endl;
-    std::cout << "PATH         " << path << std::endl;
+    std::cout << "RAW PATH     " << path_raw << std::endl;
+    std::cout << "CLEANED PATH " << path << std::endl;
+    std::cout << "FILE EXISTS? " << exists << std::endl;
     // dont display last empty line
     for(unsigned int i = 0; i < lines.size() - 1; i++) {
         std::cout << " |  " << lines.at(i) << std::endl;
     }
     std::cout << std::endl;
 
-    int status = 200;
-    std::string response;
-    response += (std::string)RESPONSE_418 + "\r\n";
-    response += "Content-Length: 11\r\n";
-    response += "Connection: close\r\n";
-    response += "Content-type: text/html\r\n";
-    response += "\r\n";
-    response += "i love you\n\r\n\r\n";
+    struct HEADERS headers;
+
+    if(exists) {
+        std::string file_contents = get_file_content(path);
+
+        headers.content_length = file_contents.length();
+        headers.response_code = RESPONSE_200;
+        headers.connection = "close";
+        headers.content_type = "text/html";
+        headers.server = "PSBB/" + VERSION + " (xinU)";
+        headers.body = file_contents;
+    } else {
+        headers.content_length = 12;
+        headers.response_code = RESPONSE_404;
+        headers.connection = "close";
+        headers.content_type = "text/html";
+        headers.server = "PSBB/" + VERSION + " (xinU)";
+        headers.body = "i love you\n";
+    }
+
+    std::string response = build_response(&headers);
 
     send(
         sock,              // socket
@@ -161,7 +170,7 @@ void banner(std::string version) {
 }
 
 int main(int argc, char* argv[]) {
-    process_args(argc, argv);
+    process_args(argc, argv, &server);
 
     int sockfd = socket(
         AF_INET,     // ipv4
