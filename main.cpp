@@ -5,6 +5,7 @@
 #include <sstream> // string stream
 #include <iterator>
 #include <map>
+#include <fstream>
 
 // network
 #include <arpa/inet.h>  // inet_ntoa()
@@ -44,7 +45,7 @@ int error(std::string msg) {
 void process_args(int argc, char* argv[]) {
     server.port = 8080;
     server.home_dir = "./www";
-    server.index = "index.html";
+    server.index = "/index.html";
 }
 
 std::vector<std::string> split(std::string str, char delim) {
@@ -59,8 +60,11 @@ std::string replace(std::string str, std::string from, std::string to) {
     std::string replaced = str;
 
     int position = str.find(from);
+    int last_position = 0;
     while(position != str.npos) {
         replaced = replaced.replace(position, from.length(), to);
+        last_position = position;
+        position = str.find(from);
     }
 
     return replaced;
@@ -89,8 +93,14 @@ std::string get_file_path(std::string line, struct SERVER_PARAMS* server, bool r
         ".."
     };
     for(std::string s : bad_paths) {
-        path = replace(path, s, '');
+        path = replace(path, s, "");
     }
+
+    if(path == "" || path == " " || path == "/") {
+        path = server->index;
+    }
+    path = server->home_dir + path;
+
     return path;
 }
 
@@ -106,9 +116,11 @@ void process_request(int sock, struct sockaddr_in* addr) {
 
     std::string ip = inet_ntoa(addr->sin_addr);
     std::pair<std::string, int> type = get_request_type(lines.at(0));
+    std::string path = get_file_path(lines.at(0), &server);
 
     std::cout << "REQUEST FROM " << ip << std::endl;
-    std::cout << "TYPE         " << type.first << "(" << type.second << ")" << std::endl;
+    std::cout << "TYPE         " << type.first << " (" << type.second << ")" << std::endl;
+    std::cout << "PATH         " << path << std::endl;
     // dont display last empty line
     for(unsigned int i = 0; i < lines.size() - 1; i++) {
         std::cout << " |  " << lines.at(i) << std::endl;
