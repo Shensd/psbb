@@ -19,6 +19,14 @@
 // local
 #include "definitions.h"
 
+// TODO
+// - add file support
+//    - strip any dangerous characters
+//       - possibly make a version that doesn't do this just for funsies
+//    - add access file that works similar to gitignore
+// - output log to log file instead of console
+// - add command line arg parsing 
+
 #define VERSION "0.0.1"
 
 struct SERVER_PARAMS {
@@ -47,24 +55,43 @@ std::vector<std::string> split(std::string str, char delim) {
     return lines;
 }
 
-std::map<std::string, int> request_dictionary;
+std::string replace(std::string str, std::string from, std::string to) {
+    std::string replaced = str;
 
-void create_dictionary(void) {
-    request_dictionary.insert(std::pair<std::string, int>("GET",     REQUEST_GET));
-    request_dictionary.insert(std::pair<std::string, int>("HEAD",    REQUEST_HEAD));
-    request_dictionary.insert(std::pair<std::string, int>("POST",    REQUEST_POST));
-    request_dictionary.insert(std::pair<std::string, int>("PUT",     REQUEST_PUT));
-    request_dictionary.insert(std::pair<std::string, int>("DELETE",  REQUEST_DELETE));
-    request_dictionary.insert(std::pair<std::string, int>("TRACE",   REQUEST_TRACE));
-    request_dictionary.insert(std::pair<std::string, int>("OPTIONS", REQUEST_OPTIONS));
-    request_dictionary.insert(std::pair<std::string, int>("CONNECT", REQUEST_CONNECT));
-    request_dictionary.insert(std::pair<std::string, int>("PATCH",   REQUEST_PATCH));
+    int position = str.find(from);
+    while(position != str.npos) {
+        replaced = replaced.replace(position, from.length(), to);
+    }
+
+    return replaced;
 }
 
+std::map<std::string, int> request_dictionary = {
+    {"GET",     REQUEST_GET},
+    {"HEAD",    REQUEST_HEAD},
+    {"POST",    REQUEST_POST},
+    {"PUT",     REQUEST_PUT},
+    {"DELETE",  REQUEST_DELETE},
+    {"TRACE",   REQUEST_TRACE},
+    {"OPTIONS", REQUEST_OPTIONS},
+    {"CONNECT", REQUEST_CONNECT},
+    {"PATCH",   REQUEST_PATCH},
+};
 
 std::pair<std::string, int> get_request_type(std::string line) {
     std::string type = split(line, ' ').at(0);
     return std::pair<std::string, int>(type, request_dictionary.find(type)->second);
+}
+
+std::string get_file_path(std::string line, struct SERVER_PARAMS* server, bool raw=false) {
+    std::string path = split(line, ' ')[1];
+    std::string bad_paths[] = {
+        ".."
+    };
+    for(std::string s : bad_paths) {
+        path = replace(path, s, '');
+    }
+    return path;
 }
 
 void process_request(int sock, struct sockaddr_in* addr) {
@@ -90,7 +117,7 @@ void process_request(int sock, struct sockaddr_in* addr) {
 
     int status = 200;
     std::string response;
-    response += "HTTP/1.1 200 OK\r\n";
+    response += (std::string)RESPONSE_418 + "\r\n";
     response += "Content-Length: 11\r\n";
     response += "Connection: close\r\n";
     response += "Content-type: text/html\r\n";
@@ -123,7 +150,6 @@ void banner(std::string version) {
 
 int main(int argc, char* argv[]) {
     process_args(argc, argv);
-    create_dictionary();
 
     int sockfd = socket(
         AF_INET,     // ipv4
