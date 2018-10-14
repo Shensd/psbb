@@ -5,13 +5,29 @@ body, html, * {
 
 body {
     background-color: black;
-    color: green;
+    background: url("res/nenecpp.jpg");
+    background-size: 256px 144px;
+    color: white;
     font-family: monospace;
+    text-shadow: 2px 2px black;
+    font-size: 25px;
+    overflow-y: hidden;
 }
 
 #spinner {
-    height: 256px;
-    width: 256px;
-    border: 1px solid green;
+    height: 32px;
+    width: 32px;
     position: absolute;
+    background-color: yellow;
+}
+
+.textbox {
+    top: 5%;
+    left: 9%;
+    position: absolute;
+}
+
+.thats {
+    vertical-align: top;
+    display: inline-block;
 }

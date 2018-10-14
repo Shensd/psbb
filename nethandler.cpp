@@ -1,27 +1,33 @@
 #include "nethandler.hpp"
 
-NetHandler::NetHandler(
-        struct SERVER_PARAMS* server,
-        void (*request_callback)(int, socklen_t)
-    ) {
+NetHandler::NetHandler(struct SERVER_PARAMS* server) {
     NetHandler::server = server;
-    NetHandler::request_callback = request_callback;
 
-    init();
-    bind();
-    listen();
+    NetHandler::init();
+    NetHandler::do_bind();
 }
 
+/**
+ * error handler, throws message along with errno
+ * 
+ * @param errormsg error message to be thrown 
+ */
+void NetHandler::error(std::string errormsg) {
+    throw std::runtime_error(
+        errormsg + " (" + std::to_string(errno) + ")"
+    );
+}
+
+/**
+ * initializes socket and fills address structure
+ */
 void NetHandler::init(void) {
-    int sockfd = socket(
+    sockfd = socket(
         AF_INET,     // ipv4
         SOCK_STREAM, // tcp
         0            // protocol
     );
-
-    if(sockfd == -1) return error("Unable to create socket");
-
-    struct sockaddr_in addr, peer_addr;
+    if(sockfd == -1) error("Unable to create socket");
 
     int opt = 1;
 
@@ -33,30 +39,38 @@ void NetHandler::init(void) {
         sizeof(opt)                  // length of return value
     );
 
-    if(setopt == -1) return error("Unable to set opt");
+    if(setopt == -1) error("Unable to set options");
 
     addr.sin_family = AF_INET;          // ipv4
-    addr.sin_port = htons(server.port); // userport
+    addr.sin_port = htons(server->port); // userport
     addr.sin_addr.s_addr = INADDR_ANY;  // allow any address to connect
 }
 
-void NetHandler::bind(void) {
+/**
+ * bind socket to port specified in address structure
+ */
+void NetHandler::do_bind(void) {
     sock_bind = bind(
         sockfd,                    // socket
         (struct sockaddr*) &addr,  // address structure
         sizeof(addr)               // size of address structure
     );
 
-    if(sock_bind == -1) return error("Unable to bind");
+    if(sock_bind == -1) error("Unable to bind");
 }
 
-void NetHandler::listen(void) {
+/**
+ * listens for requests and sends them to callback function
+ * 
+ * @param request_callback callback function for requests
+ */
+void NetHandler::do_listen(void (*request_callback)(int, sockaddr_in*)) {
     listener = listen(
         sockfd, // socket
         50      // max length of queue
     );
 
-    if(listener == -1) return error("Unable to listen");
+    if(listener == -1) error("Unable to listen");
 
     while(true) {
         socklen_t peer_addr_size = sizeof(struct sockaddr_in);
