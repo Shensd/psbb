@@ -7,8 +7,15 @@
 #include <unistd.h>     // read(), close()
 
 #include <errno.h>
+#include <stdexcept>
 
-#include "serverparams.hpp"
+struct SERVER_PARAMS {
+    int port;
+    
+    std::string home_dir;
+    std::string index;
+    std::string error;
+};
 
 class NetHandler {
 public:
@@ -21,14 +28,13 @@ public:
     int sock_bind;
     int listener;
     
-    NetHandler(struct SERVER_PARAMS*, void (*f)(int, socklen_t));
+    NetHandler(struct SERVER_PARAMS*);
 
-    void (*request_callback)(int, socklen_t);
+    void do_listen(void (*f)(int, sockaddr_in*));
 private:
-    void error(std::string, int);
-    void init();
-    void bind();
-    void listen();
+    void error(std::string);
+    void init(void);
+    void do_bind(void);
 };
 
 #endif // !NET_HANDLER_HPP

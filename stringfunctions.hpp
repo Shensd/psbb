@@ -1,31 +1,17 @@
-#ifndef STR_FUNCS_H
-#define STR_FUNCS_H
+#ifndef STRING_FUNCTIONS_HPP
+#define STRING_FUNCTIONS_HPP
 
 #include <string>
 #include <vector>
+#include <sstream>
 
-std::vector<std::string> split(std::string str, char delim) {
-    std::vector<std::string> lines;
-    std::istringstream iss(str);
-    std::string line;
-    while(std::getline(iss, line, delim)) lines.push_back(line);
-    return lines;
-}
+std::vector<std::string> split(std::string str, char delim);
+std::string replace(std::string str, std::string from, std::string to);
+std::string join(std::vector<std::string> strings, std::string bridge);
 
-std::string replace(std::string str, std::string from, std::string to) {
-    std::string replaced = str;
+template<class T>
+std::vector<T> subarr(std::vector<T> vec, int start, int end);
 
-    int position = replaced.find(from);
-    int last_position = 0;
-    while(position != std::string::npos) {
-        replaced = replaced.substr(0, position) + 
-                   to + 
-                   replaced.substr(position + from.length(), replaced.length());
-        last_position = position;
-        position = replaced.find(from);
-    }
+#include "stringfunctions.tcc"
 
-    return replaced;
-}
-
-#endif // !STR_FUNCS_H
+#endif // !STRING_FUNCTIONS_HPP

@@ -1,7 +1,7 @@
 #ifndef ARGUMENTS_HPP
 #define ARGUMENTS_HPP
 
-#include "serverparams.hpp"
+#include "nethandler.hpp"
 
 void process_args(int argc, char* argv[], struct SERVER_PARAMS* server) {
     server->port = 8080;
