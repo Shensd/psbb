@@ -56,3 +56,15 @@ std::string join(std::vector<std::string> strings, std::string bridge) {
     }
     return combined;
 }
+
+/**
+ * converts a given string to lowercase form
+ * 
+ * @param str string to be converted
+ * @returns string in lowercase form
+ */
+std::string to_lower(const std::string str) {
+    std::string lower = str;
+    std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+    return lower;
+}

@@ -1,13 +1,11 @@
 #ifndef ARGUMENTS_HPP
 #define ARGUMENTS_HPP
 
-#include "nethandler.hpp"
+#include <iostream>
 
-void process_args(int argc, char* argv[], struct SERVER_PARAMS* server) {
-    server->port = 8080;
-    server->home_dir = "./www";
-    server->index = "/index.html";
-    server->error = "/error.html";
-}
+#include "nethandler.hpp"
+#include "stringfunctions.hpp"
+
+void process_args(int argc, char* argv[], struct SERVER_PARAMS* server);
 
 #endif // !ARGUMENTS_HPP
