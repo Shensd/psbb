@@ -24,7 +24,7 @@
 #include "filefunctions.hpp"
 #include "arguments.hpp"
 #include "nethandler.hpp"
-#include "requesthandlers.hpp"
+#include "requesthandler.hpp"
 
 struct SERVER_PARAMS server;
 
@@ -111,50 +111,16 @@ void do_outbound_socket_response(int sock, std::string content) {
  * @param sock socket for request
  * @param addr socket request structure
  */
+RequestHandler request_handler = RequestHandler();
 void do_request(int sock, struct sockaddr_in* addr) {
 
     std::vector<std::string> lines = get_request_content_lines(sock);
 
-    std::pair<std::string, int> type = get_request_type(lines.at(0));
-
-    std::pair<std::string, int> result;
-
-    if(!get_is_good_request(lines)) {
-        result = get_400_bad_request();
-    } else {
-        switch(type.second) {
-            case REQUEST_GET:
-                result = get_get_request(lines, addr, &server);
-                break;
-            case REQUEST_POST:
-                result = get_post_request(lines, addr, &server);
-                break;
-            case REQUEST_HEAD:
-                result = get_head_request(lines, addr, &server);
-                break;
-            case REQUEST_PUT:
-                result = get_put_request(lines, addr, &server);
-                break;
-            case REQUEST_DELETE:
-                result = get_delete_request(lines, addr, &server);
-                break;
-            case REQUEST_TRACE:
-                result = get_trace_request(lines, addr, &server);
-                break;
-            case REQUEST_OPTIONS:
-                result = get_options_request(lines, addr, &server);
-                break;
-            case REQUEST_CONNECT:
-                result = get_connect_request(lines, addr, &server);
-                break;
-            case REQUEST_PATCH:
-                result = get_patch_request(lines, addr, &server);
-                break;
-            default:
-                result = get_other_request(lines, addr, &server);
-                break;
-        }
-    }
+    std::pair<std::string, int> result = request_handler.handle_request(
+        lines, 
+        addr,
+        &server
+    );
 
     do_debug_log(lines, addr, result.second);
 
@@ -166,7 +132,7 @@ void do_request(int sock, struct sockaddr_in* addr) {
  * 
  * @param version used for version number
  */
-void do_banner(std::string version) {
+void do_banner(std::string version, struct SERVER_PARAMS* server) {
     std::cout << " _______  _______  _______  _______ " << std::endl;
     std::cout << "|       ||       ||  _    ||  _    |" << std::endl;
     std::cout << "|    _  ||  _____|| |_|   || |_|   |" << std::endl;
@@ -177,6 +143,9 @@ void do_banner(std::string version) {
     std::cout << std::endl;
     std::cout << "VERSION " << version << " IS NOW RUNNING." << std::endl;
     std::cout << std::endl;
+    std::cout << "running on port  : " << server->port << std::endl;
+    std::cout << "web directory is : " << server->home_dir << std::endl;
+    std::cout << std::endl;
     std::cout << "waiting for connections..." << std::endl;
     std::cout << std::endl;
 }
@@ -186,7 +155,7 @@ int main(int argc, char* argv[]) {
 
     NetHandler nethandler = NetHandler(&server);
 
-    do_banner(VERSION);
+    do_banner(VERSION, &server);
 
     nethandler.do_listen(&do_request);
 
