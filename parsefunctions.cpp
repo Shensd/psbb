@@ -162,9 +162,16 @@ std::string get_mime_type(std::string file) {
  * @param request_lines request broken up into lines
  * @returns true if request is valid
  */
-bool get_is_good_request(std::vector<std::string> request_lines) {
+int is_good_request(std::vector<std::string> request_lines, struct SERVER_PARAMS* server) {
     if(split(request_lines[0], ' ').size() != 3) {
-        return false;
+        return 400;
     }
-    return true;
+    std::string path = get_file_path(request_lines[0], server);
+    std::string home_absolute = get_absolute_path(server->home_dir);
+    if(get_file_exists(path)) {
+        if(!is_inside_path(path, home_absolute)) {
+            return 403;
+        }
+    }
+    return 0;
 }

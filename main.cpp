@@ -143,8 +143,9 @@ void do_banner(std::string version, struct SERVER_PARAMS* server) {
     std::cout << std::endl;
     std::cout << "VERSION " << version << " IS NOW RUNNING." << std::endl;
     std::cout << std::endl;
-    std::cout << "running on port  : " << server->port << std::endl;
-    std::cout << "web directory is : " << server->home_dir << std::endl;
+    std::cout << "running on port      : " << server->port << std::endl;
+    std::cout << "web directory is     : " << server->home_dir << std::endl;
+    std::cout << "webdir absolute path : " << get_absolute_path(server->home_dir) << std::endl;
     std::cout << std::endl;
     std::cout << "waiting for connections..." << std::endl;
     std::cout << std::endl;

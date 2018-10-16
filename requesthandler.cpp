@@ -225,6 +225,17 @@ std::pair<std::string, int> RequestHandler::get_400_bad_request(void) {
 }
 
 /**
+ * reponse for a forbidden file
+ * 
+ * @returns pair of reponse content to be sent and status code 
+ */
+std::pair<std::string, int> RequestHandler::get_403_forbidden(void) {
+    std::string response = get_file_serve_response((std::string)DEFAULT_PAGE_DIR + "/403.html");
+    int status = 403;
+    return std::pair<std::string, int>(response, status);
+}
+
+/**
  * handles a given content request, takes full request lines and returns
  * the response content
  * 
@@ -235,8 +246,10 @@ std::pair<std::string, int> RequestHandler::handle_request(std::vector<std::stri
     std::pair<std::string, int> type = get_request_type(lines.at(0));
     std::pair<std::string, int> result;
 
-    if(!get_is_good_request(lines)) {
-        result = get_400_bad_request();
+    int error = is_good_request(lines, server);
+    if(error > 0) {
+        if (error == 400) result = get_400_bad_request();
+        if (error == 403) result = get_403_forbidden();
     } else {
         switch(type.second) {
             case REQUEST_GET:

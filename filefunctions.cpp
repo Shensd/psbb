@@ -51,3 +51,39 @@ std::string get_file_content(std::string path) {
     return file_contents;
 }
 
+/**
+ * returns the absolute path of a file, used for sandboxing
+ * 
+ * @param path relative path of file
+ * @returns string of absolute path
+ */
+std::string get_absolute_path(std::string file) {
+    char* absolute_path = realpath(file.c_str(), NULL);
+    return (std::string)absolute_path;
+}
+
+/**
+ * checks if a request is good or not
+ * 
+ * checks if:
+ *  - first line is valid (follows structure of type, path, http version)
+ *  - request ends clean
+ * 
+ * @param request_lines request broken up into lines
+ * @returns true if request is valid
+ */
+bool is_inside_path(std::string requested_file, std::string path) {
+    std::string requested_absolute_path = get_absolute_path(requested_file);
+
+    std::cout << requested_absolute_path << std::endl;
+    std::cout << path << std::endl;
+
+    if(requested_absolute_path.length() < path.length()) return false;
+
+    std::string cut = requested_absolute_path.substr(0, path.length());
+
+    std::cout << cut << std::endl;
+    std::cout << path << std::endl;
+    
+    return cut.compare(path) == 0;
+}
