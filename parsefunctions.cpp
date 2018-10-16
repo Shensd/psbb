@@ -83,6 +83,12 @@ std::string get_file_path(std::string line, struct SERVER_PARAMS* server, bool r
     }
 
     // clean path of any bad things
+    // TODO
+    // THIS WILL CURRENTLY BLOCK REQUESTS FROM PAGES
+    // THIS NEEDS TO BE MODIFIED TO ONLY BLOCK FROM OUTBOUND
+    // REQUESTS
+    //
+    // THIS SHOULD BE REPLACED WITH PROPER SAND BOXING OF THE WEB DIRECTORY
     std::string bad_paths[] = {
         ".."
     };

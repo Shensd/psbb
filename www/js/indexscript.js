@@ -23,6 +23,7 @@ let previousX = 0, previousY = 0;
 
 window.addEventListener("mousemove", (e) => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.save();
 
     let currentX = e.clientX;
     let currentY = e.clientY;
@@ -30,16 +31,23 @@ window.addEventListener("mousemove", (e) => {
     let centerX = (currentX - (WIDTH / 2));
     let centerY = (currentY - (HEIGHT / 2));
 
-    let dX = previousX - currentX;
-    let dY = previousY - currentY;
+    let dX = currentX - previousX;
+    let dY = currentY - previousY;
+    let deg = Math.atan(dY / dX);
+    let threashold = 7;
+    if(dX < threashold && dY < threashold) deg = 0;
+    console.log("(" + dX + ", " + dY + ") : " + deg);
+
+    ctx.translate(currentX, currentY);
+
+    ctx.rotate(deg);
     
     ctx.fillStyle = "red";
-    ctx.fillRect(centerX, centerY, WIDTH, HEIGHT);
+    let width = (dX > WIDTH) ? dX : WIDTH;
+    if(deg < 0) width = -width;
+    ctx.fillRect(-(WIDTH/2), -(HEIGHT/2), width, HEIGHT);
 
-    ctx.beginPath();
-    ctx.moveTo(currentX, currentY);
-    ctx.lineTo(previousX, previousY);
-    ctx.stroke();
+    ctx.restore();
 
     previousX = currentX;
     previousY = currentY;

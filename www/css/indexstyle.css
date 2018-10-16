@@ -3,6 +3,10 @@ body, html, * {
     padding: 0;
 }
 
+body {
+    overflow: hidden;
+}
+
 #canvas {
     height: 100%;
     width: 100%;
