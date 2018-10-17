@@ -216,7 +216,7 @@ std::pair<std::string, int> RequestHandler::get_400_bad_request(void) {
     struct HEADERS headers;
     
     headers.response_code = RESPONSE_400;
-    write_file_serve_headers((std::string)DEFAULT_PAGE_DIR + "/400.html", &headers);
+    write_file_serve_headers((std::string)DEFAULT_PAGE_DIR + "400.html", &headers);
     
     int status = 400;
     return std::pair<std::string, int>(build_response(&headers), status);
@@ -231,7 +231,7 @@ std::pair<std::string, int> RequestHandler::get_403_forbidden(void) {
     struct HEADERS headers;
     
     headers.response_code = RESPONSE_403;
-    write_file_serve_headers((std::string)DEFAULT_PAGE_DIR + "/403.html", &headers);
+    write_file_serve_headers((std::string)DEFAULT_PAGE_DIR + "403.html", &headers);
     
     int status = 403;
     return std::pair<std::string, int>(build_response(&headers), status);
@@ -246,7 +246,7 @@ std::pair<std::string, int> RequestHandler::get_404_not_found(void) {
     struct HEADERS headers;
     
     headers.response_code = RESPONSE_404;
-    write_file_serve_headers((std::string)DEFAULT_PAGE_DIR + "/404.html", &headers);
+    write_file_serve_headers((std::string)DEFAULT_PAGE_DIR + "404.html", &headers);
     
     int status = 404;
     return std::pair<std::string, int>(build_response(&headers), status);

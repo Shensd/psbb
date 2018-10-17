@@ -1,0 +1,62 @@
+
+ _______  _______  ______   _______ 
+|       ||       ||      | |       |
+|_     _||   _   ||  _    ||   _   |
+  |   |  |  | |  || | |   ||  | |  |
+  |   |  |  |_|  || |_|   ||  |_|  |
+  |   |  |       ||       ||       |
+  |___|  |_______||______| |_______|
+
+ 
+in no particular order (unless specified)
+
+BACK END                              
+- logging
+    - implement server log so errors starting can be diagnosed
+    - log server requests
+    - lets just get some file logs in here
+    - make everything overall more expressive, without spamming everything to
+      the console
+- runtime
+    - add option to have server run in background
+    - possibly create worker threads to handle extra requests
+- requests
+    - there should be harder vetting for what is considered a "good request"
+        - we only check the first line but not really any body of the request
+    - we should look harder into what can be added to the content of a request
+      and how to server it better to what is requested
+- response
+    - add option for page redirects
+    - add mutiple domain name support
+        - this also means extra domain folder support
+        - (this will entail actually looking at content of requests)
+    - add folder configs
+        - auto configure what is the index, error page things like that
+    - add customizable error pages,
+        - overall add more customization to what pages are served in response
+          to an error
+- command line
+    - what we have right now feels really messy, i think we should phase out 
+      almost all together interaction via command line and transition to file 
+      configs only
+        - when you are running a server you want it to be run and go, there
+         shouldn't be a bunch of hasstle with it on the command line
+- code style
+    - error handling should be more consistent, right now in net handler
+      there is a mix between return amounts and throwing errors, we should
+      try to move completely to one or at least set guidelines of what to 
+      use where
+
+FRONT END  
+- squre stretches correctly moving from left to right, but not right to left
+- start production of ball sketches
+    - ya boi has to start drawing
+
+OTHER 
+- we have a script to stress test from a local computer with only one stream
+   of requests, this script should be run from several seperate computers
+   at the same time
+- create a script that makes slightly more... *random* requests
+    - cough cough spit straight garbage at the server
+- I only know so many ways to exploit a server, ask someone else to take a look
+  at it

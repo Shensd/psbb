@@ -2,9 +2,6 @@
 
 NetHandler::NetHandler(struct SERVER_PARAMS* server) {
     NetHandler::server = server;
-
-    NetHandler::init();
-    NetHandler::do_bind();
 }
 
 /**
@@ -49,14 +46,14 @@ void NetHandler::init(void) {
 /**
  * bind socket to port specified in address structure
  */
-void NetHandler::do_bind(void) {
+int NetHandler::do_bind(void) {
     sock_bind = bind(
         sockfd,                    // socket
         (struct sockaddr*) &addr,  // address structure
         sizeof(addr)               // size of address structure
     );
 
-    if(sock_bind == -1) error("Unable to bind");
+    return sock_bind;
 }
 
 /**
@@ -64,7 +61,7 @@ void NetHandler::do_bind(void) {
  * 
  * @param request_callback callback function for requests
  */
-void NetHandler::do_listen(void (*request_callback)(int, sockaddr_in*)) {
+void NetHandler::do_listen(void) {
     listener = listen(
         sockfd, // socket
         50      // max length of queue
@@ -83,4 +80,44 @@ void NetHandler::do_listen(void (*request_callback)(int, sockaddr_in*)) {
         
         request_callback(connection, &peer_addr);
     }
+}
+
+/**
+ * set the request callback
+ * 
+ * @param f function to set to request callback
+ */
+void NetHandler::set_request_callback(void (*f)(int, sockaddr_in*)) {
+    request_callback = f;
+    callback_set = true;
+}
+
+/**
+ * creates socket and binds
+ */
+int NetHandler::init_server(void) {
+    NetHandler::init();
+
+    if(NetHandler::do_bind() == -1) {
+        return -1;
+    }
+
+    return 0;
+}
+
+/**
+ * creates socket, binds, and starts listeneing
+ */
+int NetHandler::start_server(void) {
+    NetHandler::init();
+
+    if(NetHandler::do_bind() == -1) {
+        return -1;
+    }
+
+    if(!callback_set) {
+        return -2;
+    }
+
+    do_listen();
 }

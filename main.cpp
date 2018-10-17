@@ -26,7 +26,7 @@
 #include "nethandler.hpp"
 #include "requesthandler.hpp"
 
-struct SERVER_PARAMS server;
+struct SERVER_PARAMS server; 
 
 /**
  * prints error message to stdout with errno
@@ -147,18 +147,31 @@ void do_banner(std::string version, struct SERVER_PARAMS* server) {
     std::cout << "web directory is     : " << server->home_dir << std::endl;
     std::cout << "webdir absolute path : " << get_absolute_path(server->home_dir) << std::endl;
     std::cout << std::endl;
-    std::cout << "waiting for connections..." << std::endl;
-    std::cout << std::endl;
 }
 
 int main(int argc, char* argv[]) {
-    process_args(argc, argv, &server);
+    if(process_args(argc, argv, &server) < 0) {
+        return -1;
+    }
 
     NetHandler nethandler = NetHandler(&server);
 
+    nethandler.set_request_callback(&do_request);
+
     do_banner(VERSION, &server);
 
-    nethandler.do_listen(&do_request);
+    if(nethandler.init_server() < 0) {
+        std::cout << "Unable to init server" << std::endl;
+        return -1;
+    } 
+
+    std::cout << "waiting for connections..." << std::endl;
+    std::cout << std::endl;
+
+    if(nethandler.start_server() < 0) {
+        std::cout << "Issue in running server" << std::endl;
+        return -1;
+    }
 
     return 0;
 }

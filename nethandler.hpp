@@ -15,6 +15,11 @@ struct SERVER_PARAMS {
     std::string home_dir;
     std::string index;
     std::string error;
+
+    bool uses_default_port;
+    bool uses_default_home_dir;
+    bool uses_default_index;
+    bool uses_default_error;
 };
 
 class NetHandler {
@@ -30,11 +35,19 @@ public:
     
     NetHandler(struct SERVER_PARAMS*);
 
-    void do_listen(void (*f)(int, sockaddr_in*));
+    void (*request_callback)(int, sockaddr_in*) = nullptr;
+
+    void set_request_callback(void (*f)(int, sockaddr_in*));
+    int init_server(void);
+    int start_server(void);
 private:
+    bool callback_set = false;
+    bool server_init = false;
+
     void error(std::string);
     void init(void);
-    void do_bind(void);
+    int do_bind(void);
+    void do_listen(void);
 };
 
 #endif // !NET_HANDLER_HPP

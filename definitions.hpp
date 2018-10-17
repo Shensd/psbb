@@ -3,7 +3,7 @@
 
 // program wide macros
 #define VERSION "0.0.1"
-#define DEFAULT_PAGE_DIR "./pages"
+#define DEFAULT_PAGE_DIR "./pages/"
 
 // request type constants
 const int REQUEST_GET     = 0;
