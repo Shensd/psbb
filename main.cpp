@@ -48,11 +48,11 @@ int error(std::string msg) {
  * for easier processing
  */
 std::vector<std::string> get_request_content_lines(int sock) {
-    char buffer[1024] = {0};
+    char buffer[4096] = {0};
     int valread = read(
         sock,   // connection sock
         buffer, // data buffer
-        1024    // data read length
+        4096    // data read length
     );
 
     std::vector<std::string> lines = split((std::string)buffer, '\n');
@@ -115,6 +115,9 @@ RequestHandler request_handler = RequestHandler();
 void do_request(int sock, struct sockaddr_in* addr) {
 
     std::vector<std::string> lines = get_request_content_lines(sock);
+    if(lines.size() < 1) {
+        return;
+    }
 
     std::pair<std::string, int> result = request_handler.handle_request(
         lines, 

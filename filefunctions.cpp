@@ -59,7 +59,9 @@ std::string get_file_content(std::string path) {
  */
 std::string get_absolute_path(std::string file) {
     char* absolute_path = realpath(file.c_str(), NULL);
-    return (std::string)absolute_path;
+    std::string absolute = absolute_path;
+    delete absolute_path;
+    return absolute;
 }
 
 /**
@@ -78,7 +80,6 @@ bool is_inside_path(std::string requested_file, std::string path) {
     if(requested_absolute_path.length() < path.length()) return false;
 
     std::string cut = requested_absolute_path.substr(0, path.length());
-
     
-    return cut.compare(path) == 0;
+    return cut == path;
 }
