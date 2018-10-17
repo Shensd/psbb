@@ -29,8 +29,10 @@ private:
     std::pair<std::string, int> get_connect_request(std::vector<std::string> lines, struct sockaddr_in* addr, struct SERVER_PARAMS* server);
     std::pair<std::string, int> get_patch_request(std::vector<std::string> lines, struct sockaddr_in* addr, struct SERVER_PARAMS* server);
     std::pair<std::string, int> get_other_request(std::vector<std::string> lines, struct sockaddr_in* addr, struct SERVER_PARAMS* server);
+    
     std::pair<std::string, int> get_400_bad_request(void);
     std::pair<std::string, int> get_403_forbidden(void);
+    std::pair<std::string, int> get_404_not_found(void);
 };
 
 

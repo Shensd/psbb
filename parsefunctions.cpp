@@ -82,20 +82,6 @@ std::string get_file_path(std::string line, struct SERVER_PARAMS* server, bool r
         );
     }
 
-    // clean path of any bad things
-    // TODO
-    // THIS WILL CURRENTLY BLOCK REQUESTS FROM PAGES
-    // THIS NEEDS TO BE MODIFIED TO ONLY BLOCK FROM OUTBOUND
-    // REQUESTS
-    //
-    // THIS SHOULD BE REPLACED WITH PROPER SAND BOXING OF THE WEB DIRECTORY
-    std::string bad_paths[] = {
-        ".."
-    };
-    for(std::string s : bad_paths) {
-        path = replace(path, s, "");
-    }
-
     // if path is empty or a slash return index page
     if(path == "" || path == " " || path == "/") {
         path = server->index;
@@ -163,15 +149,16 @@ std::string get_mime_type(std::string file) {
  * @returns true if request is valid
  */
 int is_good_request(std::vector<std::string> request_lines, struct SERVER_PARAMS* server) {
-    if(split(request_lines[0], ' ').size() != 3) {
-        return 400;
-    }
     std::string path = get_file_path(request_lines[0], server);
     std::string home_absolute = get_absolute_path(server->home_dir);
     if(get_file_exists(path)) {
         if(!is_inside_path(path, home_absolute)) {
             return 403;
         }
+    }
+    
+    if(split(request_lines[0], ' ').size() != 3) {
+        return 400;
     }
     return 0;
 }

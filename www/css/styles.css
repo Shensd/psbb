@@ -5,7 +5,7 @@ body, html, * {
 
 body {
     background-color: black;
-    background: url("res/nenecpp.jpg");
+    background: url("../res/nenecpp.jpg");
     background-size: 256px 144px;
     color: white;
     font-family: monospace;

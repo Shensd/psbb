@@ -75,15 +75,10 @@ std::string get_absolute_path(std::string file) {
 bool is_inside_path(std::string requested_file, std::string path) {
     std::string requested_absolute_path = get_absolute_path(requested_file);
 
-    std::cout << requested_absolute_path << std::endl;
-    std::cout << path << std::endl;
-
     if(requested_absolute_path.length() < path.length()) return false;
 
     std::string cut = requested_absolute_path.substr(0, path.length());
 
-    std::cout << cut << std::endl;
-    std::cout << path << std::endl;
     
     return cut.compare(path) == 0;
 }

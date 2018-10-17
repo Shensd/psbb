@@ -20,7 +20,7 @@ std::pair<std::string, int> RequestHandler::get_head_request(std::vector<std::st
     bool exists = get_file_exists(path);
 
     if(!exists) {
-        path = server->home_dir + server->error;
+        path = (std::string)DEFAULT_PAGE_DIR + "/404.html";
     }
 
     struct HEADERS headers;
@@ -62,25 +62,19 @@ std::pair<std::string, int> RequestHandler::get_get_request(std::vector<std::str
     std::string path = get_file_path(lines.at(0), server);
     std::string ip = inet_ntoa(addr->sin_addr);
 
-    bool exists = get_file_exists(path);
-
-    if(!exists) {
-        path = server->home_dir + server->error;
-    }
-
     struct HEADERS headers;
 
     std::string file_contents;
     int status;
+
+    bool exists = get_file_exists(path);
 
     if(exists) {
         file_contents = get_file_content(path);
         headers.response_code = RESPONSE_200;
         status = 200;
     } else {
-        file_contents = get_file_content(path);
-        headers.response_code = RESPONSE_404;
-        status = 404;
+        return get_404_not_found();
     }
 
     headers.content_length = file_contents.length();
@@ -232,6 +226,17 @@ std::pair<std::string, int> RequestHandler::get_400_bad_request(void) {
 std::pair<std::string, int> RequestHandler::get_403_forbidden(void) {
     std::string response = get_file_serve_response((std::string)DEFAULT_PAGE_DIR + "/403.html");
     int status = 403;
+    return std::pair<std::string, int>(response, status);
+}
+
+/**
+ * reponse for a file not found
+ * 
+ * @returns pair of reponse content to be sent and status code 
+ */
+std::pair<std::string, int> RequestHandler::get_404_not_found(void) {
+    std::string response = get_file_serve_response((std::string)DEFAULT_PAGE_DIR + "/404.html");
+    int status = 404;
     return std::pair<std::string, int>(response, status);
 }
 

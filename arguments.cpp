@@ -14,8 +14,6 @@ void process_args(int argc, char* argv[], struct SERVER_PARAMS* server) {
 
     for(int i = 1; i < argc; i++) {
         std::string current_arg = argv[i];
-        std::cout << current_arg << std::endl;
-        std::cout << to_lower(current_arg) << std::endl;
         if(to_lower(current_arg) == "-p" || to_lower(current_arg) == "--port") {
             port_set = true;
             if(argc > i + 1) {
