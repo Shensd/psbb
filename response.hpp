@@ -19,5 +19,6 @@ struct HEADERS {
 
 std::string build_response(struct HEADERS* headers);
 std::string get_file_serve_response(std::string path);
+void write_file_serve_headers(std::string path, struct HEADERS* headers);
 
 #endif // !HEADERS_HPP

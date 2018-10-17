@@ -48,3 +48,19 @@ std::string get_file_serve_response(std::string path) {
 
     return response;
 }
+
+/**
+ * overwrites file server headers for a given header structure
+ * 
+ * @param path path to file to be served
+ * @param headers headers to be overwritten 
+ */
+void write_file_serve_headers(std::string path, struct HEADERS* headers) {
+    std::string file_content = get_file_content(path);
+
+    headers->content_length = file_content.length();
+    headers->connection     = "close";
+    headers->content_type   = get_mime_type(path) + "; charset=UTF-8";
+    headers->server         = "PSBB/" + (std::string)VERSION + " (xinU)";
+    headers->body           = file_content;
+}
