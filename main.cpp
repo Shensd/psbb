@@ -41,26 +41,6 @@ int error(std::string msg) {
 }
 
 /**
- * read request from socket and convert to vector of strings
- * 
- * @param sock socket to grab content from
- * @returns vector of strings, content has been broken up
- * for easier processing
- */
-std::vector<std::string> get_request_content_lines(int sock) {
-    char buffer[4096] = {0};
-    int valread = read(
-        sock,   // connection sock
-        buffer, // data buffer
-        4096    // data read length
-    );
-
-    std::vector<std::string> lines = split((std::string)buffer, '\n');
-
-    return lines;
-}
-
-/**
  * prints debug information about request to stdout
  * 
  * @param lines request lines from get_request_content_lines()
@@ -86,24 +66,6 @@ void do_debug_log(std::vector<std::string> lines, struct sockaddr_in* addr, int 
 }
 
 /**
- * send content to outbound socket
- * 
- * will close socket when done with operation
- * 
- * @param sock socket to send content to
- * @param content content to send
- */
-void do_outbound_socket_response(int sock, std::string content) {
-    send(
-        sock,              // socket
-        content.c_str(),  // response content
-        content.length(), // response length
-        0                  // flags (none)
-    );
-    close(sock); // close connection whend done
-}
-
-/**
  * listener callback for server requests, takes request
  * and forwards it to specific type function and then
  * sends back response to outbound socket
@@ -112,12 +74,13 @@ void do_outbound_socket_response(int sock, std::string content) {
  * @param addr socket request structure
  */
 RequestHandler request_handler = RequestHandler();
-void do_request(int sock, struct sockaddr_in* addr) {
+std::string do_request(int sock, struct sockaddr_in* addr, std::string content) {
 
-    std::vector<std::string> lines = get_request_content_lines(sock);
-    if(lines.size() < 1) {
-        return;
+    if(content.length() < 1) {
+        return "";
     }
+
+    std::vector<std::string> lines = split((std::string)content, '\n');
 
     std::pair<std::string, int> result = request_handler.handle_request(
         lines, 
@@ -127,7 +90,7 @@ void do_request(int sock, struct sockaddr_in* addr) {
 
     do_debug_log(lines, addr, result.second);
 
-    do_outbound_socket_response(sock, result.first);
+    return result.first;
 }
 
 /**
@@ -163,16 +126,17 @@ int main(int argc, char* argv[]) {
 
     do_banner(VERSION, &server);
 
-    if(nethandler.init_server() < 0) {
-        std::cout << "Unable to init server" << std::endl;
+    int error = 0;
+    if(nethandler.init_server(&error) < 0) {
+        std::cout << "Unable to init server " << error << std::endl;
         return -1;
     } 
 
     std::cout << "waiting for connections..." << std::endl;
     std::cout << std::endl;
 
-    if(nethandler.start_server() < 0) {
-        std::cout << "Issue in running server" << std::endl;
+    if(nethandler.start_server(&error) < 0) {
+        std::cout << "Issue in running server " << error << std::endl;
         return -1;
     }
 

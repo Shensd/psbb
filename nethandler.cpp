@@ -5,26 +5,21 @@ NetHandler::NetHandler(struct SERVER_PARAMS* server) {
 }
 
 /**
- * error handler, throws message along with errno
- * 
- * @param errormsg error message to be thrown 
- */
-void NetHandler::error(std::string errormsg) {
-    throw std::runtime_error(
-        errormsg + " (" + std::to_string(errno) + ")"
-    );
-}
-
-/**
  * initializes socket and fills address structure
+ * 
+ * @param error error code on fail
+ * @returns -1 on error, 0 on success
  */
-void NetHandler::init(void) {
+int NetHandler::init(int* error) {
     sockfd = socket(
         AF_INET,     // ipv4
         SOCK_STREAM, // tcp
         0            // protocol
     );
-    if(sockfd == -1) error("Unable to create socket");
+    if(sockfd == -1) {
+        *error = ERROR_SOCKET_CREATION;
+        return -1;
+    }
 
     int opt = 1;
 
@@ -36,22 +31,35 @@ void NetHandler::init(void) {
         sizeof(opt)                  // length of return value
     );
 
-    if(setopt == -1) error("Unable to set options");
+    if(setopt == -1) {
+        *error = ERROR_SET_OPTIONS;
+        return -1;
+    }
 
     addr.sin_family = AF_INET;          // ipv4
     addr.sin_port = htons(server->port); // userport
     addr.sin_addr.s_addr = INADDR_ANY;  // allow any address to connect
+
+    return 0;
 }
 
 /**
  * bind socket to port specified in address structure
+ * 
+ * @param error error code on fail
+ * @returns -1 on error, 0 on success
  */
-int NetHandler::do_bind(void) {
+int NetHandler::do_bind(int* error) {
     sock_bind = bind(
         sockfd,                    // socket
         (struct sockaddr*) &addr,  // address structure
         sizeof(addr)               // size of address structure
     );
+
+    if(sock_bind == -1) {
+        *error = ERROR_UNABLE_TO_BIND;
+        return -1;
+    }
 
     return sock_bind;
 }
@@ -59,15 +67,19 @@ int NetHandler::do_bind(void) {
 /**
  * listens for requests and sends them to callback function
  * 
- * @param request_callback callback function for requests
+ * @param error error code on fail
+ * @returns -1 on error, 0 on success
  */
-void NetHandler::do_listen(void) {
+int NetHandler::do_listen(int* error) {
     listener = listen(
         sockfd, // socket
         50      // max length of queue
     );
 
-    if(listener == -1) error("Unable to listen");
+    if(listener == -1) {
+        *error = ERROR_UNABLE_TO_LISTEN;
+        return -1;
+    }
 
     while(true) {
         socklen_t peer_addr_size = sizeof(struct sockaddr_in);
@@ -76,10 +88,19 @@ void NetHandler::do_listen(void) {
             (struct sockaddr*) &peer_addr, // connection addr
             &peer_addr_size                // size of connection addr
         );
-        if(connection == -1) return error("Bad connection");
+        if(connection == -1) {
+            *error = ERROR_BAD_REQUEST;
+            return -1;
+        }
+
+        std::string content = get_request_content(connection);
         
-        request_callback(connection, &peer_addr);
+        std::string response = request_callback(connection, &peer_addr, content);
+
+        do_outbound_socket_response(connection, response);
     }
+
+    return 0;
 }
 
 /**
@@ -87,18 +108,23 @@ void NetHandler::do_listen(void) {
  * 
  * @param f function to set to request callback
  */
-void NetHandler::set_request_callback(void (*f)(int, sockaddr_in*)) {
+void NetHandler::set_request_callback(std::string(*f)(int, sockaddr_in*, std::string)) {
     request_callback = f;
     callback_set = true;
 }
 
 /**
  * creates socket and binds
+ * 
+ * @param error error code on fail
+ * @returns -1 on error, 0 on success
  */
-int NetHandler::init_server(void) {
-    NetHandler::init();
+int NetHandler::init_server(int* error) {
 
-    if(NetHandler::do_bind() == -1) {
+    if(NetHandler::init(error) == -1) {
+        return -1;
+    }
+    if(NetHandler::do_bind(error) == -1) {
         return -1;
     }
 
@@ -107,17 +133,57 @@ int NetHandler::init_server(void) {
 
 /**
  * creates socket, binds, and starts listeneing
+ * 
+ * @param error error code on fail
+ * @returns -1 on error, 0 on success
  */
-int NetHandler::start_server(void) {
-    NetHandler::init();
-
-    if(NetHandler::do_bind() == -1) {
+int NetHandler::start_server(int* error) {
+    if(!callback_set) {
+        *error = ERROR_CALLBACK_NOT_SET;
         return -1;
     }
 
-    if(!callback_set) {
-        return -2;
-    }
+    do_listen(error);
 
-    do_listen();
+    return 0;
+}
+
+/**
+ * read request from socket and convert std::string
+ * 
+ * @param sock socket to grab content from
+ * @returns string of content
+ */
+std::string NetHandler::get_request_content(int sockfd) {
+    char buffer[4096] = {0};
+    int valread = recv(
+        sockfd, // connection sock
+        buffer, // data buffer
+        4096,   // data read length
+        0
+    );
+
+    return (std::string)buffer;
+}
+
+/**
+ * send content to outbound socket
+ * 
+ * will close socket when done with operation
+ * 
+ * @param sock socket to send content to
+ * @param content content to send
+ */
+void NetHandler::do_outbound_socket_response(int sockfd, std::string content) {
+    if(content.length() < 1) {
+        close(sockfd);
+        return;
+    }
+    send(
+        sockfd,           // socket
+        content.c_str(),  // response content
+        content.length(), // response length
+        0                 // flags (none)
+    );
+    close(sockfd); // close connection whend done
 }
