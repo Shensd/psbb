@@ -2,16 +2,11 @@
 #include <string>
 #include <stdlib.h>
 #include <vector>
-#include <sstream> // string stream
-#include <iterator>
-#include <fstream>
-#include <algorithm>
 
 // network
 #include <arpa/inet.h>  // inet_ntoa()
 #include <sys/socket.h> // socket
 #include <netinet/in.h> // sockaddr_in
-#include <unistd.h>     // read(), close()
 
 // debug
 #include <iostream>
