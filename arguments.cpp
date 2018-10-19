@@ -4,6 +4,9 @@
  * takes args for given program and converts data from them
  * into a server struct 
  * 
+ * COMMAND LINE ARGUMENTS WILL EVENTUALLY BE PHASED OUT
+ * THIS IS ONLY LEFT HERE CURRENTLY FOR DEBUGGING
+ * 
  * @param argc args length
  * @param argv array of args
  * @param server structure for information to be copyied to

@@ -35,6 +35,14 @@ BACK END
     - add customizable error pages,
         - overall add more customization to what pages are served in response
           to an error
+    - we currently can only respond to one request at a time, add worker threads
+      to respond to many requests at a time
+        - set a thread cap of some number (probably 50)
+        - take a request and send it to a thread, only pause on a request
+          if there are no threads left to work on it
+        - each thread will take a string of the content and then the socket
+          that its connected on, we might have to open more sockets to begin
+          with since one socket can only have one connection
 - command line
     - what we have right now feels really messy, i think we should phase out 
       almost all together interaction via command line and transition to file 

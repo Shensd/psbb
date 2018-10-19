@@ -203,8 +203,7 @@ std::pair<std::string, int> RequestHandler::get_patch_request(std::vector<std::s
  * @returns pair of reponse content to be sent and status code
  */
 std::pair<std::string, int> RequestHandler::get_other_request(std::vector<std::string> lines, struct sockaddr_in* addr, struct SERVER_PARAMS* server) {
-    std::string response = "wha, what? why are you even here?\n";
-    return std::pair<std::string, int>(response, 418);
+    return get_get_request(lines, addr, server);
 }
 
 /**
