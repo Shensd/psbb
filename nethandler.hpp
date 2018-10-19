@@ -68,7 +68,7 @@ private:
     int max_threads = 200;
     int current_threads = 0;
 
-    std::vector<std::future<int>*> states;
+    std::vector<std::future<int>> states;
 
     std::string get_request_content(int sock);
     void do_outbound_socket_response(int sock, std::string content);

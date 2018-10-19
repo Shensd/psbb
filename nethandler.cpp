@@ -96,32 +96,22 @@ int NetHandler::do_listen(int* error) {
 
         std::string content = get_request_content(connection);
         
-        /*
-        std::string response = request_callback(connection, &peer_addr, content);
-
-        do_outbound_socket_response(connection, response);
-        */
         if(current_threads < max_threads) {
-            /*
-            std::thread re(do_test, connection, &peer_addr, content, request_callback);
-            re.detach();
-            */
-
-            std::future<int> f = std::async(do_test, connection, &peer_addr, content, request_callback);
-
-            states.push_back(&f);
+            states.push_back(std::async(do_test, connection, &peer_addr, content, request_callback));
 
             current_threads++;
         } 
 
         //iterate through currently running threads to check for any that are finished
-        for(std::future<int>* f : states) {
-            if(f->wait_for(std::chrono::milliseconds(0)) == std::future_status::ready) {
+        for(int i = 0; i < states.size(); i++) {
+	    std::future_status fs = states.at(i).wait_for(std::chrono::milliseconds(0));
+            if(fs == std::future_status::ready) {
                 current_threads--;
+		states.erase(states.begin() + i);
             }
         }
 
-        std::cout << "\r" << current_threads << "                ";
+        //std::cout << current_threads << std::endl;
     }
 
     return 0;
