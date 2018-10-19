@@ -73,7 +73,7 @@ private:
     std::string get_request_content(int sock);
     void do_outbound_socket_response(int sock, std::string content);
 
-    static void do_test(int sock, sockaddr_in* peer_addr, std::string content, std::string (*request_callback)(int, sockaddr_in*, std::string));
+    static int do_test(int sock, sockaddr_in* peer_addr, std::string content, std::string (*request_callback)(int, sockaddr_in*, std::string));
 };
 
 #endif // !NET_HANDLER_HPP

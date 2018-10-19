@@ -107,10 +107,7 @@ int NetHandler::do_listen(int* error) {
             re.detach();
             */
 
-            std::future<int> f = std::async(std::launch::async, [connection, &peer_addr, content, request_callback] {
-                do_test(connection, &peer_addr, content, request_callback);
-                return 8;
-            });
+            std::future<int> f = std::async(do_test, connection, &peer_addr, content, request_callback);
 
             states.push_back(&f);
 
@@ -130,12 +127,12 @@ int NetHandler::do_listen(int* error) {
     return 0;
 }
 
-void NetHandler::do_test(int connection, sockaddr_in* peer_addr, std::string content, std::string (*request_callback)(int, sockaddr_in*, std::string)) {
+int NetHandler::do_test(int connection, sockaddr_in* peer_addr, std::string content, std::string (*request_callback)(int, sockaddr_in*, std::string)) {
     std::string response = request_callback(connection, peer_addr, content);
 
     if(content.length() < 1) {
         close(connection);
-        return;
+        return -1;
     }
     send(
         connection,       // socket
@@ -144,6 +141,8 @@ void NetHandler::do_test(int connection, sockaddr_in* peer_addr, std::string con
         0                 // flags (none)
     );
     close(connection); // close connection when done
+
+    return 8;
 }
 
 /**
