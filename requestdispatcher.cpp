@@ -2,26 +2,62 @@
 
 
 RequestDispatcher::RequestDispatcher(int max_threads) {
-
+    RequestDispatcher::max_threads = max_threads;
 }
 
 /**
- * takes a socket and designates it a response thread
+ * creates worker threads for server
  * 
- * @param sock socket of which to process
- * @param addr address structure
- * @param content request content
- * @param process function of which to process request
+ * @param server server parameters
+ * @param f callback function for requests
+ * 
  */
-void RequestDispatcher::process_request(int sock, sockaddr_in* addr, std::string content, std::string(*process)(int, sockaddr_in*, std::string)) {
-    
-    if(current_threads == max_threads) {
+void RequestDispatcher::create_threads(struct SERVER_PARAMS* server, std::string (*f)(int, sockaddr_in*, std::string)) {
+    for(int i = 0; i < max_threads; i++) {
 
+        NetHandler nethandler(server);
+        nethandler.set_request_callback(f);
+
+        std::thread handler(worker, &nethandler);
+        handler.detach();
+        threads.push_back(std::pair<NetHandler*, std::thread*>(&nethandler, &handler));
     }
+}
 
-    current_threads++;
-    std::thread worker = new std::thread(process(sock, addr, content));
-    threads.push_back(worker);
+/**
+ * destroys all threads 
+ * 
+ * may god rest their souls
+ */
+void RequestDispatcher::destroy_threads() {
+    for(std::pair<NetHandler*, std::thread*> th : threads) {
+        delete th.first;
+        th.second->join();
+    }
+    threads.clear();
+}   
+
+/**
+ * method used for server threads
+ * 
+ * @param server server parameters
+ * @param f callback function
+ */
+void RequestDispatcher::worker(NetHandler* nethandler) {
+
+    int error = 0;
+    if(nethandler->init_server(&error) < 0) {
+        std::cout << "Unable to init server " << error << std::endl;
+        return;
+    } 
+
+    std::cout << "waiting for connections..." << std::endl;
+    std::cout << std::endl;
+
+    if(nethandler->start_server(&error) < 0) {
+        std::cout << "Issue in running server " << error << std::endl;
+        return;
+    }
 }
 
 /**
@@ -32,7 +68,7 @@ void RequestDispatcher::process_request(int sock, sockaddr_in* addr, std::string
  * @param threads max number of threads
  */
 void RequestDispatcher::set_max_threads(int threads) {
-    RequestDispatcher::threads = threads;
+    RequestDispatcher::max_threads = threads;
 }
 
 /**

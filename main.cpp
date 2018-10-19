@@ -2,6 +2,7 @@
 #include <string>
 #include <stdlib.h>
 #include <vector>
+#include <thread>
 
 // network
 #include <arpa/inet.h>  // inet_ntoa()
@@ -20,6 +21,7 @@
 #include "arguments.hpp"
 #include "nethandler.hpp"
 #include "requesthandler.hpp"
+#include "requestdispatcher.hpp"
 
 struct SERVER_PARAMS server; 
 
@@ -69,7 +71,7 @@ void do_debug_log(std::vector<std::string> lines, struct sockaddr_in* addr, int 
  * @param addr socket request structure
  */
 RequestHandler request_handler = RequestHandler();
-std::string do_request(int sock, struct sockaddr_in* addr, std::string content) {
+static std::string do_request(int sock, struct sockaddr_in* addr, std::string content) {
 
     if(content.length() < 1) {
         return "";
@@ -83,7 +85,7 @@ std::string do_request(int sock, struct sockaddr_in* addr, std::string content) 
         &server
     );
 
-    do_debug_log(lines, addr, result.second);
+    //do_debug_log(lines, addr, result.second);
 
     return result.first;
 }
@@ -110,19 +112,28 @@ void do_banner(std::string version, struct SERVER_PARAMS* server) {
     std::cout << std::endl;
 }
 
+
 int main(int argc, char* argv[]) {
     if(process_args(argc, argv, &server) < 0) {
         return -1;
     }
 
-    NetHandler nethandler = NetHandler(&server);
-
-    nethandler.set_request_callback(&do_request);
-
     do_banner(VERSION, &server);
 
+    /*
+    RequestDispatcher rd(1);
+    rd.create_threads(&server, &do_request);
+
+    bool running = true;
+    while(running){}
+
+    rd.destroy_threads();
+    */
+    NetHandler* nethandler = new NetHandler(&server);
+    nethandler->set_request_callback(&do_request);
+
     int error = 0;
-    if(nethandler.init_server(&error) < 0) {
+    if(nethandler->init_server(&error) < 0) {
         std::cout << "Unable to init server " << error << std::endl;
         return -1;
     } 
@@ -130,7 +141,7 @@ int main(int argc, char* argv[]) {
     std::cout << "waiting for connections..." << std::endl;
     std::cout << std::endl;
 
-    if(nethandler.start_server(&error) < 0) {
+    if(nethandler->start_server(&error) < 0) {
         std::cout << "Issue in running server " << error << std::endl;
         return -1;
     }

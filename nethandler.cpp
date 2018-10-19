@@ -81,7 +81,8 @@ int NetHandler::do_listen(int* error) {
         return -1;
     }
 
-    while(true) {
+    listening = true;
+    while(listening) {
         socklen_t peer_addr_size = sizeof(struct sockaddr_in);
         int connection = accept(
             sockfd,                        // socket
@@ -95,12 +96,54 @@ int NetHandler::do_listen(int* error) {
 
         std::string content = get_request_content(connection);
         
+        /*
         std::string response = request_callback(connection, &peer_addr, content);
 
         do_outbound_socket_response(connection, response);
+        */
+        if(current_threads < max_threads) {
+            /*
+            std::thread re(do_test, connection, &peer_addr, content, request_callback);
+            re.detach();
+            */
+
+            std::future<int> f = std::async(std::launch::async, [connection, &peer_addr, content, request_callback] {
+                do_test(connection, &peer_addr, content, request_callback);
+                return 8;
+            });
+
+            states.push_back(&f);
+
+            current_threads++;
+        } 
+
+        //iterate through currently running threads to check for any that are finished
+        for(std::future<int>* f : states) {
+            if(f->wait_for(std::chrono::milliseconds(0)) == std::future_status::ready) {
+                current_threads--;
+            }
+        }
+
+        std::cout << "\r" << current_threads << "                ";
     }
 
     return 0;
+}
+
+void NetHandler::do_test(int connection, sockaddr_in* peer_addr, std::string content, std::string (*request_callback)(int, sockaddr_in*, std::string)) {
+    std::string response = request_callback(connection, peer_addr, content);
+
+    if(content.length() < 1) {
+        close(connection);
+        return;
+    }
+    send(
+        connection,       // socket
+        response.c_str(),  // response content
+        response.length(), // response length
+        0                 // flags (none)
+    );
+    close(connection); // close connection when done
 }
 
 /**
@@ -186,4 +229,9 @@ void NetHandler::do_outbound_socket_response(int sockfd, std::string content) {
         0                 // flags (none)
     );
     close(sockfd); // close connection whend done
+}
+
+NetHandler::~NetHandler() {
+    listening = false;
+    close(sockfd);
 }
