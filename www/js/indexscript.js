@@ -33,19 +33,37 @@ window.addEventListener("mousemove", (e) => {
 
     let dX = currentX - previousX;
     let dY = currentY - previousY;
-    let deg = Math.atan(dY / dX);
+
+    let tempDX = dX;
+    let tempDY = dY;
+
+    if(dX < 0 && tempDY > 0) dX = -dX;
+    if(dY < 0 && tempDX > 0) dY = -dY; 
+    let deg = Math.atan2(dY, dX);
+
     let threashold = 7;
     if(dX < threashold && dY < threashold) deg = 0;
     console.log("(" + dX + ", " + dY + ") : " + deg);
 
-    ctx.translate(currentX, currentY);
+    let size = Math.max(dX, dY);
 
+    let offsetX = 0, offsetY = 0, boxWidth = WIDTH, boxHeight = HEIGHT;
+
+    /*
+    if(dX > dY) {
+        offsetX = (dX > WIDTH) ? dX : 0;
+        boxWidth = (dX > WIDTH) ? dX : WIDTH;
+    } else if (dY > dX) {
+        offsetY = (dY > HEIGHT) ? dY : 0;
+        boxHeight = (dY > HEIGHT) ? dY : HEIGHT;
+    } 
+    */
+
+    ctx.translate(currentX - offsetX, currentY - offsetY);
     ctx.rotate(deg);
-    
     ctx.fillStyle = "red";
-    let width = (dX > WIDTH) ? dX : WIDTH;
-    if(deg < 0) width = -width;
-    ctx.fillRect(-(WIDTH/2), -(HEIGHT/2), width, HEIGHT);
+
+    ctx.fillRect(-(WIDTH/2), -(HEIGHT/2), 64, boxHeight);
 
     ctx.restore();
 

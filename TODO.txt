@@ -52,7 +52,10 @@ FRONT END
 - start production of ball sketches
     - ya boi has to start drawing
 
-OTHER 
+TESTING
+- Add unit tests!
+    - right now, google test seems promising (https://github.com/google/googletest),
+      but we are going to look around a bit more before settling on a framework
 - we have a script to stress test from a local computer with only one stream
    of requests, this script should be run from several seperate computers
    at the same time
