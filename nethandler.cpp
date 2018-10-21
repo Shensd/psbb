@@ -94,42 +94,93 @@ int NetHandler::do_listen(int* error) {
             return -1;
         }
 
-        std::string content = get_request_content(connection);
-        
-        if(current_threads < max_threads) {
-            states.push_back(std::async(do_test, connection, &peer_addr, content, request_callback));
+        process_overflow_requests();
 
+        if(current_threads < max_threads) {
+            states.push_back(std::thread(do_test, connection, &peer_addr, request_callback));
             current_threads++;
-        } 
+        } else {
+            struct REQUEST_HOLD rh = { connection, &peer_addr };
+            request_queue.push_back(&rh);
+        }
+
+        /**
+         * IDEA
+         * 
+         * Keep track of sockets, not the threads, and just check if the passed
+         * connection has been closed by the socket, if it has then join/kill
+         * the corresponding thread and clear from vector
+         */
 
         //iterate through currently running threads to check for any that are finished
         for(int i = 0; i < states.size(); i++) {
-	    std::future_status fs = states.at(i).wait_for(std::chrono::milliseconds(0));
-            if(fs == std::future_status::ready) {
+            if(!states.at(i).joinable()) {
+                std::cout << "THREAD DONE" << std::endl;
                 current_threads--;
-		states.erase(states.begin() + i);
+                states.erase(states.begin() + i);
+                i--;
             }
         }
 
-        //std::cout << current_threads << std::endl;
+        std::cout << "CURRENT THREADS : " << current_threads << std::endl;
+        std::cout << "THREAD VEC SIZE : " << states.size() << std::endl;
     }
 
     return 0;
 }
 
-int NetHandler::do_test(int connection, sockaddr_in* peer_addr, std::string content, std::string (*request_callback)(int, sockaddr_in*, std::string)) {
-    std::string response = request_callback(connection, peer_addr, content);
+/**
+ * process request queue when there are thread spots available
+ */
+void NetHandler::process_overflow_requests(void) {
+    for(int i = current_threads; i < max_threads; i++) {
+        if(request_queue.size() == 0) {
+            return;
+        }
+        struct REQUEST_HOLD* rh = request_queue.at(0);
+        states.push_back(std::thread(do_test, rh->connection, rh->peer_addr, request_callback));
+        current_threads++;
 
+        request_queue.erase(request_queue.begin() + i);
+    }
+} 
+
+/**
+ * a very poorly named function for the time being
+ * 
+ * actually -> worker function for requests threads
+ * 
+ * @param connection socket connection
+ * @param peer_addr address structure for connection
+ * @param content content of request
+ * @param request_callback function for processing_requsts
+ * @returns 8 (thread convention)
+ */
+int NetHandler::do_test(int connection, sockaddr_in* peer_addr, std::string (*request_callback)(int, sockaddr_in*, std::string)) {
+    char buffer[4096] = {0};
+    int valread = recv(
+        connection, // connection sock
+        buffer, // data buffer
+        4096,   // data read length
+        0
+    );
+    
+    std::string content = buffer;
+
+    std::string response = request_callback(connection, peer_addr, content);
+    
     if(content.length() < 1) {
         close(connection);
-        return -1;
+        return 8;
     }
+
     send(
-        connection,       // socket
+        connection,        // socket
         response.c_str(),  // response content
         response.length(), // response length
-        0                 // flags (none)
+        0                  // flags (none)
     );
+
     close(connection); // close connection when done
 
     return 8;

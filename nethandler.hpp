@@ -30,6 +30,11 @@ struct SERVER_PARAMS {
     bool uses_default_error;
 };
 
+struct REQUEST_HOLD {
+    int connection;
+    struct sockaddr_in* peer_addr;
+};
+
 const int ERROR_SOCKET_CREATION  = 235;
 const int ERROR_SET_OPTIONS      = 236;
 const int ERROR_UNABLE_TO_LISTEN = 237;
@@ -68,12 +73,18 @@ private:
     int max_threads = 200;
     int current_threads = 0;
 
-    std::vector<std::future<int>> states;
+    std::vector<std::thread> states;
+
+    std::vector<struct REQUEST_HOLD*> request_queue;
+
+    std::vector<std::promise<int>> promises;
 
     std::string get_request_content(int sock);
     void do_outbound_socket_response(int sock, std::string content);
 
-    static int do_test(int sock, sockaddr_in* peer_addr, std::string content, std::string (*request_callback)(int, sockaddr_in*, std::string));
+    void process_overflow_requests(void);
+
+    static int do_test(int sock, sockaddr_in* peer_addr, std::string (*request_callback)(int, sockaddr_in*, std::string));
 };
 
 #endif // !NET_HANDLER_HPP

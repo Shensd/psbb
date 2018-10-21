@@ -85,7 +85,7 @@ static std::string do_request(int sock, struct sockaddr_in* addr, std::string co
         &server
     );
 
-    //do_debug_log(lines, addr, result.second);
+    do_debug_log(lines, addr, result.second);
 
     return result.first;
 }
