@@ -73,11 +73,9 @@ private:
     int max_threads = 200;
     int current_threads = 0;
 
-    std::vector<std::thread> states;
+    std::vector<std::future<int>> states;
 
     std::vector<struct REQUEST_HOLD*> request_queue;
-
-    std::vector<std::promise<int>> promises;
 
     std::string get_request_content(int sock);
     void do_outbound_socket_response(int sock, std::string content);

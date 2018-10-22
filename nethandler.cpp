@@ -81,6 +81,15 @@ int NetHandler::do_listen(int* error) {
         return -1;
     }
 
+    /**
+     * IDEA
+     * 
+     * fuck it, lets just put this whole stupid loop in a bunch of threads
+     * 
+     * deadass im so sick of this, probably gunna get it to a working state
+     * then go work on file configs for 10,000 years
+     */
+
     listening = true;
     while(listening) {
         socklen_t peer_addr_size = sizeof(struct sockaddr_in);
@@ -94,27 +103,20 @@ int NetHandler::do_listen(int* error) {
             return -1;
         }
 
-        process_overflow_requests();
-
         if(current_threads < max_threads) {
-            states.push_back(std::thread(do_test, connection, &peer_addr, request_callback));
+            process_overflow_requests();
+            
+            states.push_back(std::async(std::launch::async, do_test, connection, &peer_addr, request_callback));
             current_threads++;
         } else {
             struct REQUEST_HOLD rh = { connection, &peer_addr };
             request_queue.push_back(&rh);
         }
 
-        /**
-         * IDEA
-         * 
-         * Keep track of sockets, not the threads, and just check if the passed
-         * connection has been closed by the socket, if it has then join/kill
-         * the corresponding thread and clear from vector
-         */
-
         //iterate through currently running threads to check for any that are finished
         for(int i = 0; i < states.size(); i++) {
-            if(!states.at(i).joinable()) {
+            if(states.at(i).wait_for(std::chrono::milliseconds(0)) == std::future_status::ready) {
+                states.at(i).get();
                 std::cout << "THREAD DONE" << std::endl;
                 current_threads--;
                 states.erase(states.begin() + i);
@@ -138,7 +140,9 @@ void NetHandler::process_overflow_requests(void) {
             return;
         }
         struct REQUEST_HOLD* rh = request_queue.at(0);
-        states.push_back(std::thread(do_test, rh->connection, rh->peer_addr, request_callback));
+
+        states.push_back(std::async(std::launch::deferred, do_test, rh->connection, rh->peer_addr, request_callback));
+
         current_threads++;
 
         request_queue.erase(request_queue.begin() + i);
