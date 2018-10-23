@@ -162,3 +162,13 @@ int is_good_request(std::vector<std::string> request_lines, struct SERVER_PARAMS
     }
     return 0;
 }
+
+/**
+ * parse a given config file and put content into server struct
+ * 
+ * @param file_path path to config file
+ * @param server server config to feed configuration into
+ */
+void parse_config_file(std::string file_path, struct SERVER_PARAMS* server) {
+    return;
+}
