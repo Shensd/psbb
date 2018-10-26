@@ -33,6 +33,12 @@ struct SERVER_PARAMS {
 struct REQUEST_HOLD {
     int connection;
     struct sockaddr_in* peer_addr;
+    std::string (*request_callback)(int, sockaddr_in*, std::string);
+};
+
+struct REQUEST_FINISHED {
+    struct REQUEST_HOLD* connection_info;
+    std::string content;
 };
 
 const int ERROR_SOCKET_CREATION  = 235;
@@ -73,16 +79,22 @@ private:
     int max_threads = 200;
     int current_threads = 0;
 
-    std::vector<std::future<int>> states;
-
     std::vector<struct REQUEST_HOLD*> request_queue;
+
+    std::vector<std::pair<std::shared_future<struct REQUEST_FINISHED*>, std::thread>> states;
 
     std::string get_request_content(int sock);
     void do_outbound_socket_response(int sock, std::string content);
 
     void process_overflow_requests(void);
 
+    static int do_thread_check(std::vector<std::pair<std::shared_future<struct REQUEST_FINISHED*>, std::thread>> states, int* current_threads);
+
     static int do_test(int sock, sockaddr_in* peer_addr, std::string (*request_callback)(int, sockaddr_in*, std::string));
+
+    static void double_test(struct REQUEST_HOLD*, std::promise<struct REQUEST_FINISHED*>);
+
+    int send_finished_request(struct REQUEST_FINISHED*);
 };
 
 #endif // !NET_HANDLER_HPP

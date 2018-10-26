@@ -84,14 +84,41 @@ int NetHandler::do_listen(int* error) {
     /**
      * IDEA
      * 
-     * fuck it, lets just put this whole stupid loop in a bunch of threads
+     * wowie zowie i think the answer was under our nose the whole time
      * 
-     * deadass im so sick of this, probably gunna get it to a working state
-     * then go work on file configs for 10,000 years
+     * we looked at promises for a second so why dont we just use those?
+     * we are waiting for a value, so why not just wait for the promise to be 
+     * filled then kill the thread?
+     * 
+     * this slightly worries me because i feel i may be missing a big piece that
+     * i saw in the past but eh lets give it a try
      */
 
     listening = true;
     while(listening) {
+        //iterate through currently running threads to check for any that are finished
+        for(int i = 0; i < states.size(); i++) {
+            std::cout << "CHECKED " << states.size() << std::endl;
+            std::future_status fs = states.at(i).first.wait_for(std::chrono::seconds(0));
+            if(fs == std::future_status::ready) {
+                
+                struct REQUEST_FINISHED* rf = states.at(i).first.get();
+                send_finished_request(rf);
+                states.at(i).second.join();
+
+                std::cout << "before " << states.size() << std::endl;
+                if(states.size() == 1) {
+                    states.clear();
+                } else {
+                    states.erase(states.begin() + i);
+                }
+                std::cout << "after " << states.size() << std::endl;
+
+                i--;
+                current_threads--;
+            }
+        }
+
         socklen_t peer_addr_size = sizeof(struct sockaddr_in);
         int connection = accept(
             sockfd,                        // socket
@@ -103,25 +130,19 @@ int NetHandler::do_listen(int* error) {
             return -1;
         }
 
+        struct REQUEST_HOLD rh = { connection, &peer_addr, request_callback };
+
         if(current_threads < max_threads) {
             process_overflow_requests();
             
-            states.push_back(std::async(std::launch::async, do_test, connection, &peer_addr, request_callback));
-            current_threads++;
-        } else {
-            struct REQUEST_HOLD rh = { connection, &peer_addr };
-            request_queue.push_back(&rh);
-        }
+            std::promise<struct REQUEST_FINISHED*> out;
+            std::shared_future<struct REQUEST_FINISHED*> worker_future = out.get_future();
 
-        //iterate through currently running threads to check for any that are finished
-        for(int i = 0; i < states.size(); i++) {
-            if(states.at(i).wait_for(std::chrono::milliseconds(0)) == std::future_status::ready) {
-                states.at(i).get();
-                std::cout << "THREAD DONE" << std::endl;
-                current_threads--;
-                states.erase(states.begin() + i);
-                i--;
-            }
+            current_threads++;
+
+            states.push_back(std::pair<std::shared_future<struct REQUEST_FINISHED*>, std::thread>(worker_future, std::thread(double_test, &rh, std::move(out))));
+        } else {
+            request_queue.push_back(&rh);
         }
 
         std::cout << "CURRENT THREADS : " << current_threads << std::endl;
@@ -141,13 +162,75 @@ void NetHandler::process_overflow_requests(void) {
         }
         struct REQUEST_HOLD* rh = request_queue.at(0);
 
-        states.push_back(std::async(std::launch::deferred, do_test, rh->connection, rh->peer_addr, request_callback));
+        std::promise<struct REQUEST_FINISHED*> out;
+        std::shared_future<struct REQUEST_FINISHED*> worker_future = out.get_future();
 
         current_threads++;
+
+        states.push_back(std::pair<std::shared_future<struct REQUEST_FINISHED*>, std::thread>(worker_future, std::thread(double_test, rh, std::move(out))));
 
         request_queue.erase(request_queue.begin() + i);
     }
 } 
+
+/**
+ * wow i just love poorly written functions
+ * 
+ * another test function for threading
+ * 
+ * @param request info for request
+ * @param out promise for output value
+ */
+void NetHandler::double_test(struct REQUEST_HOLD* request, std::promise<struct REQUEST_FINISHED*> out) {
+    int connection = request->connection;
+    struct sockaddr_in* peer_addr = request->peer_addr;
+
+    char buffer[4096] = {0};
+    int valread = recv(
+        connection, // connection sock
+        buffer, // data buffer
+        4096,   // data read length
+        0
+    );
+    
+    std::string content = buffer;
+
+    if(content.length() < 1) {
+        close(connection);
+        struct REQUEST_FINISHED rf= {request, (std::string)""};
+        out.set_value(&rf);
+    }
+
+    std::string response = request->request_callback(connection, peer_addr, content);
+
+    struct REQUEST_FINISHED rf= {request, response};
+    out.set_value(&rf);
+}
+
+/**
+ * sends a finished request struct to the contained sock
+ * 
+ * @param request structure of request data
+ * @returns 8
+ */
+int NetHandler::send_finished_request(struct REQUEST_FINISHED* request) {
+    
+    int connection = request->connection_info->connection;
+    std::string response = request->content;
+
+    if(response.length() < 1) return 8;
+
+    send(
+        connection,        // socket
+        response.c_str(),  // response content
+        response.length(), // response length
+        0                  // flags (none)
+    );
+
+    close(connection); // close connection when done
+
+    return 8;
+}
 
 /**
  * a very poorly named function for the time being
