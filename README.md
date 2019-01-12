@@ -1,6 +1,6 @@
 # PSBB
 
-Written all the way from scratch
+![PSBB Banner](./res/psbb-banner.png)
 
 ### What Is This?
 
@@ -17,8 +17,17 @@ Next it is run with
 
 ```./psbb.o```
 
-There are plans to add more command line feature in the future, such as setting a 
-web directory, index file, error page default, etc. There will also be config file support so all server configs are done automatically on start. 
+Some command line options are:
+
+```
+--home-dir, -d          set the home directory (default www)
+--port, -p              set the running port (default 80)
+--index, -i             set the index page (default index.html)
+```
+
+An example of using these is:
+
+```./psbb.o --home-dir "www" --port 8080 --index help.html```
 
 ### What Are the Future Plans?
 
@@ -35,11 +44,10 @@ Short answer: yes
 
 Long answer: yeeeeeeeeeeeeeees
 
-I have not yet critically analyized the server for large security issues, many of the surface ones have already been accounted for but it has yet to be properly audited. It also has not been load tested yet, which is also an important task to be done in the future.
+I have not yet critically analyized the server for large security issues, many of the surface ones have already been accounted for but it has yet to be properly audited.
 
 ### What Does the Name Stand For?
 
 Why do you ask so many questions?
-
 
 ###### This project is licensed under the MIT Open Source License.
