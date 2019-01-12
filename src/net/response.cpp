@@ -6,7 +6,7 @@
  * @param headers header structure with response content
  * @returns response string 
  */
-std::string build_response(struct HEADERS* headers) {
+std::string response::build_response(struct HEADERS* headers) {
     std::string response = "";
 
     response += headers->response_code + "\r\n";
@@ -33,14 +33,14 @@ std::string build_response(struct HEADERS* headers) {
  * @param path path to file to be served
  * @returns string of response
  */
-std::string get_file_serve_response(std::string path) {
-    std::string file_content = get_file_content(path);
+std::string response::get_file_serve_response(std::string path) {
+    std::string file_content = fileutils::get_file_content(path);
 
     struct HEADERS headers;
 
     headers.content_length = file_content.length();
     headers.connection     = "close";
-    headers.content_type   = get_mime_type(path) + "; charset=UTF-8";
+    headers.content_type   = parse::get_mime_type(path) + "; charset=UTF-8";
     headers.server         = "PSBB/" + (std::string)VERSION + " (xinU)";
     headers.body           = file_content;
 
@@ -55,12 +55,12 @@ std::string get_file_serve_response(std::string path) {
  * @param path path to file to be served
  * @param headers headers to be overwritten 
  */
-void write_file_serve_headers(std::string path, struct HEADERS* headers) {
-    std::string file_content = get_file_content(path);
+void response::write_file_serve_headers(std::string path, struct HEADERS* headers) {
+    std::string file_content = fileutils::get_file_content(path);
 
     headers->content_length = file_content.length();
     headers->connection     = "close";
-    headers->content_type   = get_mime_type(path) + "; charset=UTF-8";
+    headers->content_type   = parse::get_mime_type(path) + "; charset=UTF-8";
     headers->server         = "PSBB/" + (std::string)VERSION + " (xinU)";
     headers->body           = file_content;
 }

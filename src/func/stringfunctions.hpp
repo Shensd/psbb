@@ -6,14 +6,16 @@
 #include <sstream>
 #include <algorithm>
 
-std::vector<std::string> split(std::string str, char delim);
-std::string replace(std::string str, std::string from, std::string to);
-std::string join(std::vector<std::string> strings, std::string bridge);
-std::string to_lower(std::string);
+namespace stringutils {
+    std::vector<std::string> split(std::string str, char delim);
+    std::string replace(std::string str, std::string from, std::string to);
+    std::string join(std::vector<std::string> strings, std::string bridge);
+    std::string to_lower(std::string);
 
-template<class T>
-std::vector<T> subarr(std::vector<T> vec, int start, int end);
+    template<class T>
+    std::vector<T> subarr(std::vector<T> vec, int start, int end);
 
-#include "stringfunctions.tcc"
+    #include "stringfunctions.tcc"
+}
 
 #endif // !STRING_FUNCTIONS_HPP

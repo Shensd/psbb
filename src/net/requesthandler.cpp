@@ -13,17 +13,17 @@ RequestHandler::RequestHandler() {}
  * @returns pair of reponse content to be sent and status code
  */
 std::pair<std::string, int> RequestHandler::get_head_request(std::vector<std::string> lines, struct sockaddr_in* addr, struct SERVER_PARAMS* server) {
-    std::string path_raw = get_file_path(lines.at(0), server, true);
-    std::string path = get_file_path(lines.at(0), server);
+    std::string path_raw = parse::get_file_path(lines.at(0), server, true);
+    std::string path = parse::get_file_path(lines.at(0), server);
     std::string ip = inet_ntoa(addr->sin_addr);
 
-    bool exists = get_file_exists(path);
+    bool exists = fileutils::get_file_exists(path);
 
     if(!exists) {
         path = (std::string)DEFAULT_PAGE_DIR + "/404.html";
     }
 
-    struct HEADERS headers;
+    struct response::HEADERS headers;
 
     int status;
 
@@ -37,11 +37,11 @@ std::pair<std::string, int> RequestHandler::get_head_request(std::vector<std::st
 
     headers.content_length = 0;
     headers.connection     = "close";
-    headers.content_type   = get_mime_type(path) + "; charset=UTF-8";
+    headers.content_type   = parse::get_mime_type(path) + "; charset=UTF-8";
     headers.server         = "PSBB/" + (std::string)VERSION + " (xinU)";
     headers.body           = "";
 
-    std::string response = build_response(&headers);
+    std::string response = response::build_response(&headers);
 
     return std::pair<std::string, int>(response, status);
 }
@@ -58,19 +58,19 @@ std::pair<std::string, int> RequestHandler::get_head_request(std::vector<std::st
  * @returns pair of reponse content to be sent and status code
  */
 std::pair<std::string, int> RequestHandler::get_get_request(std::vector<std::string> lines, struct sockaddr_in* addr, struct SERVER_PARAMS* server) {
-    std::string path_raw = get_file_path(lines.at(0), server, true);
-    std::string path = get_file_path(lines.at(0), server);
+    std::string path_raw = parse::get_file_path(lines.at(0), server, true);
+    std::string path = parse::get_file_path(lines.at(0), server);
     std::string ip = inet_ntoa(addr->sin_addr);
 
-    struct HEADERS headers;
+    struct response::HEADERS headers;
 
     std::string file_contents;
     int status;
 
-    bool exists = get_file_exists(path);
+    bool exists = fileutils::get_file_exists(path);
 
     if(exists) {
-        file_contents = get_file_content(path);
+        file_contents = fileutils::get_file_content(path);
         headers.response_code = RESPONSE_200;
         status = 200;
     } else {
@@ -79,11 +79,11 @@ std::pair<std::string, int> RequestHandler::get_get_request(std::vector<std::str
 
     headers.content_length = file_contents.length();
     headers.connection     = "close";
-    headers.content_type   = get_mime_type(path) + "; charset=UTF-8";
+    headers.content_type   = parse::get_mime_type(path) + "; charset=UTF-8";
     headers.server         = "PSBB/" + (std::string)VERSION + " (xinU)";
     headers.body           = file_contents;
 
-    std::string response = build_response(&headers);
+    std::string response = response::build_response(&headers);
 
     return std::pair<std::string, int>(response, status);
 }
@@ -212,12 +212,12 @@ std::pair<std::string, int> RequestHandler::get_other_request(std::vector<std::s
  * @returns pair of reponse content to be sent and status code 
  */
 std::pair<std::string, int> RequestHandler::get_400_bad_request(void) {
-    struct HEADERS headers;
+    struct response::HEADERS headers;
     
     headers.response_code = RESPONSE_400;
-    write_file_serve_headers((std::string)DEFAULT_PAGE_DIR + "400.html", &headers);
+    response::write_file_serve_headers((std::string)DEFAULT_PAGE_DIR + "400.html", &headers);
     
-    std::string response = build_response(&headers);
+    std::string response = response::build_response(&headers);
     int status = 400;
 
     return std::pair<std::string, int>(response, status);
@@ -229,12 +229,12 @@ std::pair<std::string, int> RequestHandler::get_400_bad_request(void) {
  * @returns pair of reponse content to be sent and status code 
  */
 std::pair<std::string, int> RequestHandler::get_403_forbidden(void) {
-    struct HEADERS headers;
+    struct response::HEADERS headers;
     
     headers.response_code = RESPONSE_403;
-    write_file_serve_headers((std::string)DEFAULT_PAGE_DIR + "403.html", &headers);
+    response::write_file_serve_headers((std::string)DEFAULT_PAGE_DIR + "403.html", &headers);
     
-    std::string response = build_response(&headers);
+    std::string response = response::build_response(&headers);
     int status = 403;
 
     return std::pair<std::string, int>(response, status);
@@ -246,12 +246,12 @@ std::pair<std::string, int> RequestHandler::get_403_forbidden(void) {
  * @returns pair of reponse content to be sent and status code 
  */
 std::pair<std::string, int> RequestHandler::get_404_not_found(void) {
-    struct HEADERS headers;
+    struct response::HEADERS headers;
     
     headers.response_code = RESPONSE_404;
-    write_file_serve_headers((std::string)DEFAULT_PAGE_DIR + "404.html", &headers);
+    response::write_file_serve_headers((std::string)DEFAULT_PAGE_DIR + "404.html", &headers);
     
-    std::string response = build_response(&headers);
+    std::string response = response::build_response(&headers);
     int status = 404;
 
     return std::pair<std::string, int>(response, status);
@@ -265,10 +265,10 @@ std::pair<std::string, int> RequestHandler::get_404_not_found(void) {
  * @returns pair of respond string and status code
  */
 std::pair<std::string, int> RequestHandler::handle_request(std::vector<std::string> lines, struct sockaddr_in* addr, struct SERVER_PARAMS* server) {
-    std::pair<std::string, int> type = get_request_type(lines.at(0));
+    std::pair<std::string, int> type = parse::get_request_type(lines.at(0));
     std::pair<std::string, int> result;
 
-    int error = is_good_request(lines, server);
+    int error = parse::is_good_request(lines, server);
     if(error > 0) {
         if (error == 400) result = get_400_bad_request();
         if (error == 403) result = get_403_forbidden();

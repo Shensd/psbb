@@ -8,7 +8,7 @@
  * @returns vector of specified elements
  */
 template<class T>
-std::vector<T> subarr(std::vector<T> vec, int start, int end) {
+std::vector<T> stringutils::subarr(std::vector<T> vec, int start, int end) {
     std::vector<T> mod;
     for(int i = start; i < end; i++) {
         mod.push_back(vec.at(i));

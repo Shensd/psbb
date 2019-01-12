@@ -7,7 +7,7 @@
  * @param delim delimeter to split by
  * @returns vector of strings split by delimeter
  */
-std::vector<std::string> split(std::string str, char delim) {
+std::vector<std::string> stringutils::split(std::string str, char delim) {
     std::vector<std::string> lines;
     std::istringstream iss(str);
     std::string line;
@@ -23,7 +23,7 @@ std::vector<std::string> split(std::string str, char delim) {
  * @param to sequence to replace to
  * @returns modified string
  */
-std::string replace(std::string str, std::string from, std::string to) {
+std::string stringutils::replace(std::string str, std::string from, std::string to) {
     std::string replaced = str;
 
     int position = replaced.find(from);
@@ -46,7 +46,7 @@ std::string replace(std::string str, std::string from, std::string to) {
  * @param bridge sequence to join strings together with
  * @returns joined string
  */
-std::string join(std::vector<std::string> strings, std::string bridge) {
+std::string stringutils::join(std::vector<std::string> strings, std::string bridge) {
     std::string combined = "";
     for(int i = 0; i < strings.size(); i++) {
         combined += strings.at(i);
@@ -63,7 +63,7 @@ std::string join(std::vector<std::string> strings, std::string bridge) {
  * @param str string to be converted
  * @returns string in lowercase form
  */
-std::string to_lower(const std::string str) {
+std::string stringutils::to_lower(const std::string str) {
     std::string lower = str;
     std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
     return lower;

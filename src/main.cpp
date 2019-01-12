@@ -45,14 +45,14 @@ int error(std::string msg) {
  * @param status status of response
  */
 void do_debug_log(std::vector<std::string> lines, struct sockaddr_in* addr, int status) {
-    std::string path_raw = get_file_path(lines.at(0), &server, true);
-    std::string path = get_file_path(lines.at(0), &server);
+    std::string path_raw = parse::get_file_path(lines.at(0), &server, true);
+    std::string path = parse::get_file_path(lines.at(0), &server);
     std::string ip = inet_ntoa(addr->sin_addr);
 
     std::string one_line_request;
 
-    one_line_request = join(lines, " ");
-    one_line_request = replace(one_line_request, "\r", "");
+    one_line_request = stringutils::join(lines, " ");
+    one_line_request = stringutils::replace(one_line_request, "\r", "");
 
     std::cout << ip 
               << " :: " 
@@ -77,7 +77,7 @@ static std::string do_request(int sock, struct sockaddr_in* addr, std::string co
         return "";
     }
 
-    std::vector<std::string> lines = split((std::string)content, '\n');
+    std::vector<std::string> lines = stringutils::split((std::string)content, '\n');
 
     std::pair<std::string, int> result = request_handler.handle_request(
         lines, 
@@ -108,7 +108,7 @@ void do_banner(std::string version, struct SERVER_PARAMS* server) {
     std::cout << std::endl;
     std::cout << "running on port      : " << server->port << std::endl;
     std::cout << "web directory is     : " << server->home_dir << std::endl;
-    std::cout << "webdir absolute path : " << get_absolute_path(server->home_dir) << std::endl;
+    std::cout << "webdir absolute path : " << fileutils::get_absolute_path(server->home_dir) << std::endl;
     std::cout << std::endl;
 }
 

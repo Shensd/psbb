@@ -6,19 +6,21 @@
 #include "../func/filefunctions.hpp"
 #include "../parse/parsefunctions.hpp"
 
-struct HEADERS {
-    int content_length;
-    
-    std::string response_code;
-    std::string connection;
-    std::string content_type;
-    std::string server;
+namespace response {
+    struct HEADERS {
+        int content_length;
+        
+        std::string response_code;
+        std::string connection;
+        std::string content_type;
+        std::string server;
 
-    std::string body;
-};
+        std::string body;
+    };
 
-std::string build_response(struct HEADERS* headers);
-std::string get_file_serve_response(std::string path);
-void write_file_serve_headers(std::string path, struct HEADERS* headers);
+    std::string build_response(struct HEADERS* headers);
+    std::string get_file_serve_response(std::string path);
+    void write_file_serve_headers(std::string path, struct HEADERS* headers);
+}
 
 #endif // !HEADERS_HPP

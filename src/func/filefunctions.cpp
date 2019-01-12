@@ -6,7 +6,7 @@
  * @param path path of file
  * @returns boolean of whether file exists or not
  */
-bool get_file_exists(std::string path) {
+bool fileutils::get_file_exists(std::string path) {
     std::ifstream test(path.c_str());
     bool exists = test.is_open();
     test.close();
@@ -21,7 +21,7 @@ bool get_file_exists(std::string path) {
  * @param path path of file
  * @returns specified file
  */
-std::ifstream get_file(std::string path) {
+std::ifstream fileutils::get_file(std::string path) {
     std::ifstream file(path.c_str());
     return file;
 }
@@ -33,7 +33,7 @@ std::ifstream get_file(std::string path) {
  * @returns file content
  * if file does not exist then an empty string is returned
  */
-std::string get_file_content(std::string path) {
+std::string fileutils::get_file_content(std::string path) {
     std::ifstream file = get_file(path);
 
     std::string file_contents = "";
@@ -57,7 +57,7 @@ std::string get_file_content(std::string path) {
  * @param path relative path of file
  * @returns string of absolute path
  */
-std::string get_absolute_path(std::string file) {
+std::string fileutils::get_absolute_path(std::string file) {
     char* absolute_path = realpath(file.c_str(), NULL);
     std::string absolute = absolute_path;
     delete absolute_path;
@@ -74,7 +74,7 @@ std::string get_absolute_path(std::string file) {
  * @param request_lines request broken up into lines
  * @returns true if request is valid
  */
-bool is_inside_path(std::string requested_file, std::string path) {
+bool fileutils::is_inside_path(std::string requested_file, std::string path) {
     std::string requested_absolute_path = get_absolute_path(requested_file);
 
     if(requested_absolute_path.length() < path.length()) return false;

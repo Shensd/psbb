@@ -29,7 +29,7 @@ int process_args(int argc, char* argv[], struct SERVER_PARAMS* server) {
 
     for(int i = 1; i < argc; i++) {
         std::string current_arg = argv[i];
-        std::string arg_lower = to_lower(current_arg);
+        std::string arg_lower = stringutils::to_lower(current_arg);
 
         if(arg_lower == "-p" || arg_lower == "--port") {
             port_set = true;
@@ -54,7 +54,7 @@ int process_args(int argc, char* argv[], struct SERVER_PARAMS* server) {
         if(arg_lower == "-d" || arg_lower == "--home-dir") {
             home_dir_set = true;
             if(argc > i + 1) {
-                if(get_file_exists(argv[i+1])) {
+                if(fileutils::get_file_exists(argv[i+1])) {
                     if(server->home_dir.at(server->home_dir.length()-1) != '/') {
                         server->home_dir = (std::string)argv[i+1] + "/";
                     } else {
