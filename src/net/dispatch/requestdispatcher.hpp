@@ -12,7 +12,7 @@
 #include <netinet/in.h> // sockaddr_in
 #include <unistd.h>     // read(), close()
 
-#include "nethandler.hpp"
+#include "../handler/nethandler.hpp"
 
 class RequestDispatcher {
 public:

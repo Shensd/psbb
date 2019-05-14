@@ -7,10 +7,10 @@
 #include <algorithm>
 #include <errno.h>
 
-#include "../net/nethandler.hpp"
-#include "../definitions.hpp"
-#include "../func/stringfunctions.hpp"
-#include "../func/filefunctions.hpp"
+#include "../../net/handler/nethandler.hpp"
+#include "../../definitions.hpp"
+#include "../../func/stringfunctions.hpp"
+#include "../../func/filefunctions.hpp"
 
 namespace parse {
     std::string get_file_path(std::string line, struct SERVER_PARAMS* server, bool raw=false);

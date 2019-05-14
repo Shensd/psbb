@@ -7,12 +7,12 @@
 
 #include <netinet/in.h> // sockaddr_in
 
-#include "response.hpp"
-#include "../definitions.hpp"
-#include "../func/stringfunctions.hpp"
-#include "../func/filefunctions.hpp"
-#include "../parse/parsefunctions.hpp"
-#include "../net/nethandler.hpp"
+#include "../response/response.hpp"
+#include "../../definitions.hpp"
+#include "../../func/stringfunctions.hpp"
+#include "../../func/filefunctions.hpp"
+#include "../../parse/func/parsefunctions.hpp"
+#include "nethandler.hpp"
 
 class RequestHandler {
 public:

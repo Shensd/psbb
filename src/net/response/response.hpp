@@ -3,8 +3,8 @@
 
 #include <string>
 
-#include "../func/filefunctions.hpp"
-#include "../parse/parsefunctions.hpp"
+#include "../../func/filefunctions.hpp"
+#include "../../parse/func/parsefunctions.hpp"
 
 namespace response {
     struct HEADERS {

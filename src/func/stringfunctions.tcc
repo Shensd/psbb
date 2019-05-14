@@ -9,9 +9,10 @@
  */
 template<class T>
 std::vector<T> stringutils::subarr(std::vector<T> vec, int start, int end) {
-    std::vector<T> mod;
-    for(int i = start; i < end; i++) {
-        mod.push_back(vec.at(i));
-    }
+    typename std::vector<T>::iterator st = vec.begin() + start;
+    typename std::vector<T>::iterator en = vec.begin() + end;
+    
+    std::vector<T> mod(st, en);
+    
     return mod;
 }

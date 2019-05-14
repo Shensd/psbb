@@ -14,14 +14,19 @@
 #include <errno.h>
 
 // local
-#include "net/response.hpp"
+#include "net/response/response.hpp"
 #include "definitions.hpp"
 #include "func/stringfunctions.hpp"
 #include "func/filefunctions.hpp"
-#include "parse/arguments.hpp"
-#include "net/nethandler.hpp"
-#include "net/requesthandler.hpp"
-#include "net/requestdispatcher.hpp"
+#include "parse/arg/arguments.hpp"
+#include "net/handler/nethandler.hpp"
+#include "net/handler/requesthandler.hpp"
+#include "net/dispatch/requestdispatcher.hpp"
+
+#include "parse/arg/flags/flag.hpp"
+#include "parse/arg/flags/flaghome.hpp"
+#include "parse/arg/flags/flagindex.hpp"
+#include "parse/arg/flags/flagport.hpp"
 
 struct SERVER_PARAMS server; 
 
@@ -114,21 +119,21 @@ void do_banner(std::string version, struct SERVER_PARAMS* server) {
 
 
 int main(int argc, char* argv[]) {
-    if(process_args(argc, argv, &server) < 0) {
+    
+    std::vector<Flag*> cli_flags;
+    cli_flags.push_back(new FlagHome());
+    cli_flags.push_back(new FlagIndex());
+    cli_flags.push_back(new FlagPort());
+
+    std::string arg_error = arg::process_args(argc, argv, &server, cli_flags);
+
+    if(arg_error.compare("") != 0) {
+        std::cout << "ERROR " << arg_error << std::endl;
         return -1;
     }
 
     do_banner(VERSION, &server);
 
-    /*
-    RequestDispatcher rd(1);
-    rd.create_threads(&server, &do_request);
-
-    bool running = true;
-    while(running){}
-
-    rd.destroy_threads();
-    */
     NetHandler* nethandler = new NetHandler(&server);
     nethandler->set_request_callback(&do_request);
 
