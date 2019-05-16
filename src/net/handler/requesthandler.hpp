@@ -13,53 +13,54 @@
 #include "../../func/filefunctions.hpp"
 #include "../../parse/func/parsefunctions.hpp"
 #include "nethandler.hpp"
+#include "../sock/simpletcpsocket.hpp"
 
 class RequestHandler {
 private: 
  
-    using ptr_request_parser = std::pair<std::string, int>(*)(std::vector<std::string>, struct sockaddr_in*, struct SERVER_PARAMS*, RequestHandler*);
+    using ptr_request_parser = std::pair<std::string, int>(*)(std::vector<std::string>, sock::SimpleTCPSocket*, struct SERVER_PARAMS*, RequestHandler*);
 
     std::vector<ptr_request_parser> request_parser_list;
 
     friend std::pair<std::string, int> get_head_request(std::vector<std::string> lines, 
-                                                        struct sockaddr_in* addr, 
-                                                        struct SERVER_PARAMS* server, 
+                                                        sock::SimpleTCPSocket* simplesocket, 
+                                                        struct SERVER_PARAMS*,
                                                         RequestHandler* handler);
     friend std::pair<std::string, int> get_get_request(std::vector<std::string> lines, 
-                                                        struct sockaddr_in* addr, 
-                                                        struct SERVER_PARAMS* server, 
+                                                        sock::SimpleTCPSocket* simplesocket, 
+                                                        struct SERVER_PARAMS*,
                                                         RequestHandler* handler);
     friend std::pair<std::string, int> get_post_request(std::vector<std::string> lines, 
-                                                        struct sockaddr_in* addr, 
-                                                        struct SERVER_PARAMS* server, 
+                                                        sock::SimpleTCPSocket* simplesocket, 
+                                                        struct SERVER_PARAMS*,
                                                         RequestHandler* handler);
     friend std::pair<std::string, int> get_put_request(std::vector<std::string> lines, 
-                                                        struct sockaddr_in* addr, 
-                                                        struct SERVER_PARAMS* server, 
+                                                        sock::SimpleTCPSocket* simplesocket, 
+                                                        struct SERVER_PARAMS*,
                                                         RequestHandler* handler);
     friend std::pair<std::string, int> get_delete_request(std::vector<std::string> lines, 
-                                                        struct sockaddr_in* addr, 
-                                                        struct SERVER_PARAMS* server, 
+                                                        sock::SimpleTCPSocket* simplesocket, 
+                                                        struct SERVER_PARAMS*,
                                                         RequestHandler* handler);
     friend std::pair<std::string, int> get_trace_request(std::vector<std::string> lines, 
-                                                        struct sockaddr_in* addr, 
-                                                        struct SERVER_PARAMS* server, 
+                                                        sock::SimpleTCPSocket* simplesocket, 
+                                                        struct SERVER_PARAMS*,
                                                         RequestHandler* handler);
     friend std::pair<std::string, int> get_options_request(std::vector<std::string> lines, 
-                                                        struct sockaddr_in* addr, 
-                                                        struct SERVER_PARAMS* server, 
+                                                        sock::SimpleTCPSocket* simplesocket, 
+                                                        struct SERVER_PARAMS*,
                                                         RequestHandler* handler);
     friend std::pair<std::string, int> get_connect_request(std::vector<std::string> lines, 
-                                                        struct sockaddr_in* addr, 
-                                                        struct SERVER_PARAMS* server, 
+                                                        sock::SimpleTCPSocket* simplesocket, 
+                                                        struct SERVER_PARAMS*,
                                                         RequestHandler* handler);
     friend std::pair<std::string, int> get_patch_request(std::vector<std::string> lines, 
-                                                        struct sockaddr_in* addr, 
-                                                        struct SERVER_PARAMS* server, 
+                                                        sock::SimpleTCPSocket* simplesocket, 
+                                                        struct SERVER_PARAMS*,
                                                         RequestHandler* handler);
     friend std::pair<std::string, int> get_other_request(std::vector<std::string> lines, 
-                                                        struct sockaddr_in* addr, 
-                                                        struct SERVER_PARAMS* server, 
+                                                        sock::SimpleTCPSocket* simplesocket, 
+                                                        struct SERVER_PARAMS*,
                                                         RequestHandler* handler);
     
     std::pair<std::string, int> get_400_bad_request(void);
@@ -68,7 +69,7 @@ private:
 public:
     RequestHandler();
 
-    std::pair<std::string, int> handle_request(std::vector<std::string>, struct sockaddr_in*, struct SERVER_PARAMS*);
+    std::pair<std::string, int> handle_request(std::vector<std::string>, sock::SimpleTCPSocket*, struct SERVER_PARAMS*);
 };
 
 

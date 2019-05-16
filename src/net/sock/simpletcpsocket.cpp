@@ -136,6 +136,10 @@ namespace sock {
         connection = -1;
     }
 
+    std::string SimpleTCPSocket::get_ip_human(void) {
+        return inet_ntoa(addr.sin_addr);
+    }
+
     /**
      * Read a given number of bytes into a buffer from the current connection,
      * if there is no connection then no bytes will be read

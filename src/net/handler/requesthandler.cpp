@@ -12,13 +12,13 @@
  */
 std::pair<std::string, int> get_head_request(
     std::vector<std::string> lines, 
-    struct sockaddr_in* addr, 
+    sock::SimpleTCPSocket* simplesocket,
     struct SERVER_PARAMS* server, 
     RequestHandler* handler) {
 
     std::string path_raw = parse::get_file_path(lines.at(0), server, true);
     std::string path = parse::get_file_path(lines.at(0), server);
-    std::string ip = inet_ntoa(addr->sin_addr);
+    std::string ip = simplesocket->get_ip_human();
 
     bool exists = fileutils::get_file_exists(path);
 
@@ -62,13 +62,13 @@ std::pair<std::string, int> get_head_request(
  */
 std::pair<std::string, int> get_get_request(
     std::vector<std::string> lines, 
-    struct sockaddr_in* addr, 
+    sock::SimpleTCPSocket* simplesocket,
     struct SERVER_PARAMS* server, 
     RequestHandler* handler) {
 
     std::string path_raw = parse::get_file_path(lines.at(0), server, true);
     std::string path = parse::get_file_path(lines.at(0), server);
-    std::string ip = inet_ntoa(addr->sin_addr);
+    std::string ip = simplesocket->get_ip_human();
 
     struct response::HEADERS headers;
 
@@ -109,11 +109,11 @@ std::pair<std::string, int> get_get_request(
  */
 std::pair<std::string, int> get_post_request(
     std::vector<std::string> lines, 
-    struct sockaddr_in* addr, 
+    sock::SimpleTCPSocket* simplesocket,
     struct SERVER_PARAMS* server, 
     RequestHandler* handler) {
         
-    return get_get_request(lines, addr, server, handler);
+    return get_get_request(lines, simplesocket, server, handler);
 }
 
 /**
@@ -129,11 +129,11 @@ std::pair<std::string, int> get_post_request(
  */
 std::pair<std::string, int> get_put_request(
     std::vector<std::string> lines, 
-    struct sockaddr_in* addr, 
+    sock::SimpleTCPSocket* simplesocket,
     struct SERVER_PARAMS* server, 
     RequestHandler* handler) {
         
-    return get_get_request(lines, addr, server, handler);
+    return get_get_request(lines, simplesocket, server, handler);
 }
 
 /**
@@ -149,11 +149,11 @@ std::pair<std::string, int> get_put_request(
  */
 std::pair<std::string, int> get_delete_request(
     std::vector<std::string> lines, 
-    struct sockaddr_in* addr, 
+    sock::SimpleTCPSocket* simplesocket,
     struct SERVER_PARAMS* server, 
     RequestHandler* handler) {
         
-    return get_get_request(lines, addr, server, handler);
+    return get_get_request(lines, simplesocket, server, handler);
 }
 
 /**
@@ -169,11 +169,11 @@ std::pair<std::string, int> get_delete_request(
  */
 std::pair<std::string, int> get_trace_request(
     std::vector<std::string> lines, 
-    struct sockaddr_in* addr, 
+    sock::SimpleTCPSocket* simplesocket,
     struct SERVER_PARAMS* server, 
     RequestHandler* handler) {
         
-    return get_get_request(lines, addr, server, handler);
+    return get_get_request(lines, simplesocket, server, handler);
 }
 
 /**
@@ -189,11 +189,11 @@ std::pair<std::string, int> get_trace_request(
  */
 std::pair<std::string, int> get_options_request(
     std::vector<std::string> lines, 
-    struct sockaddr_in* addr, 
+    sock::SimpleTCPSocket* simplesocket,
     struct SERVER_PARAMS* server, 
     RequestHandler* handler) {
         
-    return get_get_request(lines, addr, server, handler);
+    return get_get_request(lines, simplesocket, server, handler);
 }
 
 /**
@@ -209,11 +209,11 @@ std::pair<std::string, int> get_options_request(
  */
 std::pair<std::string, int> get_connect_request(
     std::vector<std::string> lines, 
-    struct sockaddr_in* addr, 
+    sock::SimpleTCPSocket* simplesocket,
     struct SERVER_PARAMS* server, 
     RequestHandler* handler) {
         
-    return get_get_request(lines, addr, server, handler);
+    return get_get_request(lines, simplesocket, server, handler);
 }
 
 /**
@@ -229,11 +229,11 @@ std::pair<std::string, int> get_connect_request(
  */
 std::pair<std::string, int> get_patch_request(
     std::vector<std::string> lines, 
-    struct sockaddr_in* addr, 
+    sock::SimpleTCPSocket* simplesocket, 
     struct SERVER_PARAMS* server, 
     RequestHandler* handler) {
         
-    return get_get_request(lines, addr, server, handler);
+    return get_get_request(lines, simplesocket, server, handler);
 }
 
 /**
@@ -247,11 +247,11 @@ std::pair<std::string, int> get_patch_request(
  */
 std::pair<std::string, int> get_other_request(
     std::vector<std::string> lines, 
-    struct sockaddr_in* addr, 
+    sock::SimpleTCPSocket* simplesocket,
     struct SERVER_PARAMS* server, 
     RequestHandler* handler) {
         
-    return get_get_request(lines, addr, server, handler);
+    return get_get_request(lines, simplesocket, server, handler);
 }
 
 /**
@@ -314,7 +314,7 @@ std::pair<std::string, int> RequestHandler::get_404_not_found(void) {
  */
 std::pair<std::string, int> RequestHandler::handle_request(
     std::vector<std::string> lines, 
-    struct sockaddr_in* addr, 
+    sock::SimpleTCPSocket* simplesocket,
     struct SERVER_PARAMS* server) {
 
     std::pair<std::string, int> type = parse::get_request_type(lines.at(0));
@@ -327,9 +327,9 @@ std::pair<std::string, int> RequestHandler::handle_request(
     } else {
 
         if(type.second > 0 && type.second < request_parser_list.size()) {
-            result = request_parser_list.at(type.second)(lines, addr, server, this);
+            result = request_parser_list.at(type.second)(lines, simplesocket, server, this);
         } else {
-            result = get_other_request(lines, addr, server, this);
+            result = get_other_request(lines, simplesocket, server, this);
         }
 
     }

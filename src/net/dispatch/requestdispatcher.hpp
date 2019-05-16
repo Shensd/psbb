@@ -13,12 +13,13 @@
 #include <unistd.h>     // read(), close()
 
 #include "../handler/nethandler.hpp"
+#include "../sock/simpletcpsocket.hpp"
 
 class RequestDispatcher {
 public:
     RequestDispatcher(int max_threads);
 
-    void create_threads(struct SERVER_PARAMS* server, std::string (*f)(int, sockaddr_in*, std::string));
+    void create_threads(struct SERVER_PARAMS* server, std::string (*f)(sock::SimpleTCPSocket*, std::string));
     void destroy_threads();
 
     void set_max_threads(int threads);

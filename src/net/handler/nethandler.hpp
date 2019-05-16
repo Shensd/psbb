@@ -1,12 +1,6 @@
 #ifndef NET_HANDLER_HPP
 #define NET_HANDLER_HPP
 
-// network
-#include <arpa/inet.h>  // inet_ntoa()
-#include <sys/socket.h> // socket
-#include <netinet/in.h> // sockaddr_in
-#include <unistd.h>     // read(), close()
-
 #include <thread>
 #include <future>
 #include <chrono>
@@ -16,6 +10,8 @@
 #include <stdexcept>
 
 #include <iostream>
+
+#include "../sock/simpletcpsocket.hpp"
 
 struct SERVER_PARAMS {
     int port;
@@ -40,30 +36,24 @@ const int ERROR_CALLBACK_NOT_SET = 240;
 class NetHandler {
 public:
     struct SERVER_PARAMS* server;
-    struct sockaddr_in addr, peer_addr;
-
-    int sockfd;
-    int opt = 1;
-
-    int sock_bind;
-    int listener;
     
     NetHandler(struct SERVER_PARAMS*);
     ~NetHandler();
 
-    std::string (*request_callback)(int, sockaddr_in*, std::string) = nullptr;
+    std::string (*request_callback)(sock::SimpleTCPSocket*, std::string) = nullptr;
 
-    void set_request_callback(std::string (*f)(int, sockaddr_in*, std::string));
+    void set_request_callback(std::string (*f)(sock::SimpleTCPSocket*, std::string));
     int init_server(int* error);
     int start_server(int* error);
+
+    sock::SimpleTCPSocket* simplesocket;
 private:
     bool callback_set = false;
     bool server_init = false;
     bool listening = false;
 
     int init(int* error);
-    int do_bind(int* error);
-    int do_listen(int* error);
+    int listen(int* error);
 
     std::string get_request_content(int sock);
     void do_outbound_socket_response(int sock, std::string content);

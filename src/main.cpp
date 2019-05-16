@@ -22,6 +22,7 @@
 #include "net/handler/nethandler.hpp"
 #include "net/handler/requesthandler.hpp"
 #include "net/dispatch/requestdispatcher.hpp"
+#include "net/sock/simpletcpsocket.hpp"
 
 #include "parse/arg/flags/flag.hpp"
 #include "parse/arg/flags/flaghome.hpp"
@@ -49,10 +50,10 @@ int error(std::string msg) {
  * @param addr socket address structure
  * @param status status of response
  */
-void do_debug_log(std::vector<std::string> lines, struct sockaddr_in* addr, int status) {
+void do_debug_log(std::vector<std::string> lines, sock::SimpleTCPSocket* simplesocket, int status) {
     std::string path_raw = parse::get_file_path(lines.at(0), &server, true);
     std::string path = parse::get_file_path(lines.at(0), &server);
-    std::string ip = inet_ntoa(addr->sin_addr);
+    std::string ip = simplesocket->get_ip_human();
 
     std::string one_line_request;
 
@@ -76,7 +77,7 @@ void do_debug_log(std::vector<std::string> lines, struct sockaddr_in* addr, int 
  * @param addr socket request structure
  */
 RequestHandler request_handler = RequestHandler();
-static std::string do_request(int sock, struct sockaddr_in* addr, std::string content) {
+static std::string do_request(sock::SimpleTCPSocket* simplesocket, std::string content) {
 
     if(content.length() < 1) {
         return "";
@@ -86,11 +87,11 @@ static std::string do_request(int sock, struct sockaddr_in* addr, std::string co
 
     std::pair<std::string, int> result = request_handler.handle_request(
         lines, 
-        addr,
+        simplesocket,
         &server
     );
 
-    do_debug_log(lines, addr, result.second);
+    do_debug_log(lines, simplesocket, result.second);
 
     return result.first;
 }

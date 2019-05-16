@@ -12,7 +12,7 @@ RequestDispatcher::RequestDispatcher(int max_threads) {
  * @param f callback function for requests
  * 
  */
-void RequestDispatcher::create_threads(struct SERVER_PARAMS* server, std::string (*f)(int, sockaddr_in*, std::string)) {
+void RequestDispatcher::create_threads(struct SERVER_PARAMS* server, std::string (*f)(sock::SimpleTCPSocket*, std::string)) {
     for(int i = 0; i < max_threads; i++) {
 
         NetHandler nethandler(server);

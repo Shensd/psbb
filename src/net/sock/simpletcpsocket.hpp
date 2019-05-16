@@ -32,6 +32,9 @@ namespace sock {
         void wait_for_connection(void);
         void discard_connection(void);
 
+        int get_ip(void);
+        std::string get_ip_human(void);
+
         void read_bytes(int, char*);
         void operator<<(std::string);
         void operator>>(std::ostream);
