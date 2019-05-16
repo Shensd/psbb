@@ -1,7 +1,5 @@
 #include "requesthandler.hpp"
 
-RequestHandler::RequestHandler() {}
-
 /**
  * response for HEAD http request
  * 
@@ -12,7 +10,12 @@ RequestHandler::RequestHandler() {}
  * @param addr socket address structure
  * @returns pair of reponse content to be sent and status code
  */
-std::pair<std::string, int> RequestHandler::get_head_request(std::vector<std::string> lines, struct sockaddr_in* addr, struct SERVER_PARAMS* server) {
+std::pair<std::string, int> get_head_request(
+    std::vector<std::string> lines, 
+    struct sockaddr_in* addr, 
+    struct SERVER_PARAMS* server, 
+    RequestHandler* handler) {
+
     std::string path_raw = parse::get_file_path(lines.at(0), server, true);
     std::string path = parse::get_file_path(lines.at(0), server);
     std::string ip = inet_ntoa(addr->sin_addr);
@@ -57,7 +60,12 @@ std::pair<std::string, int> RequestHandler::get_head_request(std::vector<std::st
  * @param addr socket address structure
  * @returns pair of reponse content to be sent and status code
  */
-std::pair<std::string, int> RequestHandler::get_get_request(std::vector<std::string> lines, struct sockaddr_in* addr, struct SERVER_PARAMS* server) {
+std::pair<std::string, int> get_get_request(
+    std::vector<std::string> lines, 
+    struct sockaddr_in* addr, 
+    struct SERVER_PARAMS* server, 
+    RequestHandler* handler) {
+
     std::string path_raw = parse::get_file_path(lines.at(0), server, true);
     std::string path = parse::get_file_path(lines.at(0), server);
     std::string ip = inet_ntoa(addr->sin_addr);
@@ -74,7 +82,7 @@ std::pair<std::string, int> RequestHandler::get_get_request(std::vector<std::str
         headers.response_code = RESPONSE_200;
         status = 200;
     } else {
-        return get_404_not_found();
+        return handler->get_404_not_found();
     }
 
     headers.content_length = file_contents.length();
@@ -99,8 +107,13 @@ std::pair<std::string, int> RequestHandler::get_get_request(std::vector<std::str
  * @param addr socket address structure
  * @returns pair of reponse content to be sent and status code
  */
-std::pair<std::string, int> RequestHandler::get_post_request(std::vector<std::string> lines, struct sockaddr_in* addr, struct SERVER_PARAMS* server) {
-    return get_get_request(lines, addr, server);
+std::pair<std::string, int> get_post_request(
+    std::vector<std::string> lines, 
+    struct sockaddr_in* addr, 
+    struct SERVER_PARAMS* server, 
+    RequestHandler* handler) {
+        
+    return get_get_request(lines, addr, server, handler);
 }
 
 /**
@@ -114,8 +127,13 @@ std::pair<std::string, int> RequestHandler::get_post_request(std::vector<std::st
  * @param addr socket address structure
  * @returns pair of reponse content to be sent and status code
  */
-std::pair<std::string, int> RequestHandler::get_put_request(std::vector<std::string> lines, struct sockaddr_in* addr, struct SERVER_PARAMS* server) {
-    return get_get_request(lines, addr, server);
+std::pair<std::string, int> get_put_request(
+    std::vector<std::string> lines, 
+    struct sockaddr_in* addr, 
+    struct SERVER_PARAMS* server, 
+    RequestHandler* handler) {
+        
+    return get_get_request(lines, addr, server, handler);
 }
 
 /**
@@ -129,8 +147,13 @@ std::pair<std::string, int> RequestHandler::get_put_request(std::vector<std::str
  * @param addr socket address structure
  * @returns pair of reponse content to be sent and status code
  */
-std::pair<std::string, int> RequestHandler::get_delete_request(std::vector<std::string> lines, struct sockaddr_in* addr, struct SERVER_PARAMS* server) {
-    return get_get_request(lines, addr, server);
+std::pair<std::string, int> get_delete_request(
+    std::vector<std::string> lines, 
+    struct sockaddr_in* addr, 
+    struct SERVER_PARAMS* server, 
+    RequestHandler* handler) {
+        
+    return get_get_request(lines, addr, server, handler);
 }
 
 /**
@@ -144,8 +167,13 @@ std::pair<std::string, int> RequestHandler::get_delete_request(std::vector<std::
  * @param addr socket address structure
  * @returns pair of reponse content to be sent and status code
  */
-std::pair<std::string, int> RequestHandler::get_trace_request(std::vector<std::string> lines, struct sockaddr_in* addr, struct SERVER_PARAMS* server) {
-    return get_get_request(lines, addr, server);
+std::pair<std::string, int> get_trace_request(
+    std::vector<std::string> lines, 
+    struct sockaddr_in* addr, 
+    struct SERVER_PARAMS* server, 
+    RequestHandler* handler) {
+        
+    return get_get_request(lines, addr, server, handler);
 }
 
 /**
@@ -159,8 +187,13 @@ std::pair<std::string, int> RequestHandler::get_trace_request(std::vector<std::s
  * @param addr socket address structure
  * @returns pair of reponse content to be sent and status code
  */
-std::pair<std::string, int> RequestHandler::get_options_request(std::vector<std::string> lines, struct sockaddr_in* addr, struct SERVER_PARAMS* server) {
-    return get_get_request(lines, addr, server);
+std::pair<std::string, int> get_options_request(
+    std::vector<std::string> lines, 
+    struct sockaddr_in* addr, 
+    struct SERVER_PARAMS* server, 
+    RequestHandler* handler) {
+        
+    return get_get_request(lines, addr, server, handler);
 }
 
 /**
@@ -174,8 +207,13 @@ std::pair<std::string, int> RequestHandler::get_options_request(std::vector<std:
  * @param addr socket address structure
  * @returns pair of reponse content to be sent and status code
  */
-std::pair<std::string, int> RequestHandler::get_connect_request(std::vector<std::string> lines, struct sockaddr_in* addr, struct SERVER_PARAMS* server) {
-    return get_get_request(lines, addr, server);
+std::pair<std::string, int> get_connect_request(
+    std::vector<std::string> lines, 
+    struct sockaddr_in* addr, 
+    struct SERVER_PARAMS* server, 
+    RequestHandler* handler) {
+        
+    return get_get_request(lines, addr, server, handler);
 }
 
 /**
@@ -189,8 +227,13 @@ std::pair<std::string, int> RequestHandler::get_connect_request(std::vector<std:
  * @param addr socket address structure
  * @returns pair of reponse content to be sent and status code
  */
-std::pair<std::string, int> RequestHandler::get_patch_request(std::vector<std::string> lines, struct sockaddr_in* addr, struct SERVER_PARAMS* server) {
-    return get_get_request(lines, addr, server);
+std::pair<std::string, int> get_patch_request(
+    std::vector<std::string> lines, 
+    struct sockaddr_in* addr, 
+    struct SERVER_PARAMS* server, 
+    RequestHandler* handler) {
+        
+    return get_get_request(lines, addr, server, handler);
 }
 
 /**
@@ -202,8 +245,13 @@ std::pair<std::string, int> RequestHandler::get_patch_request(std::vector<std::s
  * @param addr socket address structure
  * @returns pair of reponse content to be sent and status code
  */
-std::pair<std::string, int> RequestHandler::get_other_request(std::vector<std::string> lines, struct sockaddr_in* addr, struct SERVER_PARAMS* server) {
-    return get_get_request(lines, addr, server);
+std::pair<std::string, int> get_other_request(
+    std::vector<std::string> lines, 
+    struct sockaddr_in* addr, 
+    struct SERVER_PARAMS* server, 
+    RequestHandler* handler) {
+        
+    return get_get_request(lines, addr, server, handler);
 }
 
 /**
@@ -264,7 +312,11 @@ std::pair<std::string, int> RequestHandler::get_404_not_found(void) {
  * @param lines request lines
  * @returns pair of respond string and status code
  */
-std::pair<std::string, int> RequestHandler::handle_request(std::vector<std::string> lines, struct sockaddr_in* addr, struct SERVER_PARAMS* server) {
+std::pair<std::string, int> RequestHandler::handle_request(
+    std::vector<std::string> lines, 
+    struct sockaddr_in* addr, 
+    struct SERVER_PARAMS* server) {
+
     std::pair<std::string, int> type = parse::get_request_type(lines.at(0));
     std::pair<std::string, int> result;
 
@@ -273,39 +325,29 @@ std::pair<std::string, int> RequestHandler::handle_request(std::vector<std::stri
         if (error == 400) result = get_400_bad_request();
         if (error == 403) result = get_403_forbidden();
     } else {
-        switch(type.second) {
-            case REQUEST_GET:
-                result = get_get_request(lines, addr, server);
-                break;
-            case REQUEST_POST:
-                result = get_post_request(lines, addr, server);
-                break;
-            case REQUEST_HEAD:
-                result = get_head_request(lines, addr, server);
-                break;
-            case REQUEST_PUT:
-                result = get_put_request(lines, addr, server);
-                break;
-            case REQUEST_DELETE:
-                result = get_delete_request(lines, addr, server);
-                break;
-            case REQUEST_TRACE:
-                result = get_trace_request(lines, addr, server);
-                break;
-            case REQUEST_OPTIONS:
-                result = get_options_request(lines, addr, server);
-                break;
-            case REQUEST_CONNECT:
-                result = get_connect_request(lines, addr, server);
-                break;
-            case REQUEST_PATCH:
-                result = get_patch_request(lines, addr, server);
-                break;
-            default:
-                result = get_other_request(lines, addr, server);
-                break;
+
+        if(type.second > 0 && type.second < request_parser_list.size()) {
+            result = request_parser_list.at(type.second)(lines, addr, server, this);
+        } else {
+            result = get_other_request(lines, addr, server, this);
         }
+
     }
 
     return result;
+}
+
+RequestHandler::RequestHandler() {
+    request_parser_list = {
+        &get_get_request,
+        &get_head_request,
+        &get_post_request,
+        &get_put_request,
+        &get_delete_request,
+        &get_trace_request,
+        &get_options_request,
+        &get_connect_request,
+        &get_patch_request,
+        &get_other_request
+    };
 }

@@ -47,6 +47,8 @@ std::map<std::string, int> request_type_dictionary = {
  * form
  * 
  * @param line first line of http request
+ * @param server settings for parsing
+ * @param raw return path with no modifications
  * @returns most correct path name without checking if file exists
  */
 std::string parse::get_file_path(std::string line, struct SERVER_PARAMS* server, bool raw) {
@@ -151,7 +153,7 @@ std::string parse::get_mime_type(std::string file) {
 int parse::is_good_request(std::vector<std::string> request_lines, struct SERVER_PARAMS* server) {
     std::string path = get_file_path(request_lines[0], server);
     std::string home_absolute = fileutils::get_absolute_path(server->home_dir);
-    
+
     if(fileutils::get_file_exists(path)) {
         if(!fileutils::is_inside_path(path, home_absolute)) {
             return 403;
